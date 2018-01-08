@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Serialization;
 
 namespace HealthParse
 {
     class Program
     {
-        
         static void Main(string[] args)
         {
             var fileLocation = "export.zip";
-            //var fileLocation = "/Users/jon/Google Drive/export.zip";
             var export = ReadArchive(
                     fileLocation,
                     entry => entry.FullName == "apple_health_export/export.xml",
@@ -23,88 +19,48 @@ namespace HealthParse
                 .FirstOrDefault();
 
             var grouped = export.Descendants("Record")
-                .Select(r => {
-                    var startDate = r.Attribute("startDate").ValueDateTime();
-                    var endDate = r.Attribute("endDate").ValueDateTime();
-                    return new {
-                        type = r.Attribute("type").Value,
-                        endDate = endDate,
-                        startDate = startDate,
-                        dateRange = new DateRange(startDate, endDate),
-                        creationDate = r.Attribute("creationDate")?.ValueDateTime(),
-                        value = r.Attribute("value")?.Value ?? "<null>",
-                        unit = r.Attribute("unit")?.Value ?? "<null>",
-                        raw = r };
-                })
-                .GroupBy(r => r.type)
+                .Select(r => Record.FromXElement(r))
+                .GroupBy(r => r.Type)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-            //var mass = grouped["HKQuantityTypeIdentifierBodyMass"];
-            //var steps = grouped["HKQuantityTypeIdentifierStepCount"]
-            //    .GroupBy(s => s.startDate.Date)
-            //    .Select(x => new {
-            //        date = x.Key,
-            //        steps = x.Sum(r => r.value.SafeParse(0))
-            //    });
+            var dailySteps = PrioritizeSteps(grouped[HKConstants.StepCount])
+                .GroupBy(s => s.StartDate.Date)
+                .Select(x => new
+                {
+                    date = x.Key,
+                    steps = x.Sum(r => r.Value.SafeParse(0))
+                });
 
-            //var steps2 = grouped["HKQuantityTypeIdentifierStepCount"]
-                //.GroupBy(s => s.startDate.Date)
-                //.SelectMany(x => {
-                //    return x
-                //        .GroupBy(b => b.raw.Attribute("sourceName").Value)
-                //        .Select(b => new
-                //        {
-                //            date = x.Key,
-                //            source = b.Key,
-                //            steps = b.Sum(r => r.value.SafeParse(0))
-                //        });
-                //});
+            dailySteps
+                .Select(m => $"{m.date} {m.steps}")
+                .ToList().ForEach(Console.WriteLine);
+            Console.ReadKey();
+        }
 
-            var justSteps = grouped["HKQuantityTypeIdentifierStepCount"].ToList();
-            var trimmed = justSteps.Take(0).ToList();
+        private static IEnumerable<Record> PrioritizeSteps(IEnumerable<Record> allTheSteps)
+        {
+            var justSteps = allTheSteps.OrderBy(r => r.StartDate).ToList();
 
             for (int i = 0; i < justSteps.Count; i++)
             {
                 var current = justSteps[i];
                 var next = justSteps.Skip(i + 1).FirstOrDefault();
-                var nextOverlaps = next != null && current.dateRange.Includes(next.startDate);
+                var nextOverlaps = next != null && current.DateRange.Includes(next.StartDate);
 
                 if (nextOverlaps)
                 {
-                    var keeper = new[]{current, next}
-                        .First(l => l.raw.Attribute("sourceName").Value.Contains("Watch"));
+                    var keeper = new[] { current, next }
+                        .First(l => l.Raw.Attribute("sourceName").Value.Contains("Watch"));
+                    var loser = new[] { current, next }.Where(x => x != keeper).Single();
 
-                    //trimmed.Add(keeper);
-                    Console.WriteLine($"skipping {i}");
+                    justSteps.Remove(loser);
                     i--;
                 }
                 else
                 {
-                    trimmed.Add(current);
+                    yield return current;
                 }
             }
-
-            using (var writer = new StreamWriter("steps.csv", false))
-            {
-                trimmed
-                    .Where(r => r.endDate.Date == new DateTime(2017, 2, 25))
-                    .OrderBy(r => r.endDate)
-                    .Select(r => $"{r.raw.Attribute("sourceName").Value},{r.startDate},{r.endDate},{r.value}")
-                    .ToList().ForEach(writer.WriteLine);
-                //grouped["HKQuantityTypeIdentifierStepCount"]
-                    //.Where(r => r.endDate.Date == new DateTime(2017, 2, 25))
-                    //.OrderBy(r => r.endDate)
-                    //.Select(r => $"{r.raw.Attribute("sourceName").Value},{r.startDate},{r.endDate},{r.value}")
-                    //.ToList().ForEach(writer.WriteLine);
-            }
-
-
-
-            //Console.WriteLine(mass.Count());
-            //Console.WriteLine(string.Join(Environment.NewLine, steps.Select(m => $"{m.date} {m.steps}")));
-            //steps2
-                //.Select(m => $"{m.date} {m.steps} ({m.source})")
-                //.ToList().ForEach(Console.WriteLine);
         }
 
         private static IEnumerable<T> ReadArchive<T>(string zipFileLocation, Func<ZipArchiveEntry, bool> entryFilter, Func<ZipArchiveEntry, T> eachEntry)
@@ -121,6 +77,12 @@ namespace HealthParse
                 }
             }
         }
+    }
+
+    public static class HKConstants
+    {
+        public const string BodyMass = "HKQuantityTypeIdentifierBodyMass";
+        public const string StepCount = "HKQuantityTypeIdentifierStepCount";
     }
 
     public static class Help
@@ -171,5 +133,31 @@ namespace HealthParse
             return (Start < range.Start) && (range.End < End);
         }
     }
-
+    public class Record
+    {
+        public string Type { get; private set; }
+        public DateTime StartDate { get; private set; }
+        public DateTime EndDate { get; private set; }
+        public DateTime? CreationDate { get; private set; }
+        public XElement Raw { get; private set; }
+        public DateRange DateRange { get; private set; }
+        public string Value { get; private set; }
+        public string Unit { get; private set; }
+        public static Record FromXElement(XElement r)
+        {
+            var startDate = r.Attribute("startDate").ValueDateTime();
+            var endDate = r.Attribute("endDate").ValueDateTime();
+            return new Record
+            {
+                Type = r.Attribute("type").Value,
+                EndDate = endDate,
+                StartDate = startDate,
+                DateRange = new DateRange(startDate, endDate),
+                CreationDate = r.Attribute("creationDate")?.ValueDateTime(),
+                Value = r.Attribute("value")?.Value ?? "<null>",
+                Unit = r.Attribute("unit")?.Value ?? "<null>",
+                Raw = r
+            };
+        }
+    }
 }
