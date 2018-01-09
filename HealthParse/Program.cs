@@ -28,7 +28,7 @@ namespace HealthParse
                 .GroupBy(r => r.WorkoutType)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-            var dailySteps = PrioritizeSteps(records[HKConstants.StepCount])
+            var dailySteps = PrioritizeSteps(records[HKConstants.Records.StepCount])
                 .GroupBy(s => s.StartDate.Date)
                 .Select(x => new
                 {
@@ -36,14 +36,19 @@ namespace HealthParse
                     steps = x.Sum(r => r.Value.SafeParse(0))
                 });
 
-            workouts[HKConstants.Workouts.Strength]
+            //workouts[HKConstants.Workouts.Strength]
+            //    .OrderBy(w => w.StartDate)
+            //    .Select(w => $"{w.StartDate} - {w.SourceName} - {w.Duration}")
+            //    .ToList().ForEach(Console.WriteLine);
+
+            workouts[HKConstants.Workouts.Cycling]
                 .OrderBy(w => w.StartDate)
-                .Select(w => $"{w.StartDate} - {w.SourceName} - {w.Duration}")
+                .Select(w => $"{w.StartDate} - {w.SourceName} - {w.TotalDistance}")
                 .ToList().ForEach(Console.WriteLine);
+
             //dailySteps
             //    .Select(m => $"{m.date} {m.steps}")
             //    .ToList().ForEach(Console.WriteLine);
-            Console.ReadKey();
         }
 
         private static IEnumerable<Record> PrioritizeSteps(IEnumerable<Record> allTheSteps)
@@ -90,12 +95,17 @@ namespace HealthParse
 
     public static class HKConstants
     {
-        public const string BodyMass = "HKQuantityTypeIdentifierBodyMass";
-        public const string StepCount = "HKQuantityTypeIdentifierStepCount";
+        public static class Records
+        {
+            public const string BodyMass = "HKQuantityTypeIdentifierBodyMass";
+            public const string StepCount = "HKQuantityTypeIdentifierStepCount";
+            public const string DistanceCycling = "HKQuantityTypeIdentifierDistanceCycling";
+        }
 
         public static class Workouts
         {
             public const string Strength = "HKWorkoutActivityTypeTraditionalStrengthTraining";
+            public const string Cycling = "HKWorkoutActivityTypeCycling";
         }
     }
 
