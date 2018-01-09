@@ -18,12 +18,17 @@ namespace HealthParse
                     entry => XDocument.Load(entry.Open()))
                 .FirstOrDefault();
 
-            var grouped = export.Descendants("Record")
-                .Select(r => Record.FromXElement(r))
+            var records = export.Descendants("Record")
+                .Select(Record.FromXElement)
                 .GroupBy(r => r.Type)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-            var dailySteps = PrioritizeSteps(grouped[HKConstants.StepCount])
+            var workouts = export.Descendants("Workout")
+                .Select(Workout.FromXElement)
+                .GroupBy(r => r.WorkoutType)
+                .ToDictionary(g => g.Key, g => g.AsEnumerable());
+
+            var dailySteps = PrioritizeSteps(records[HKConstants.StepCount])
                 .GroupBy(s => s.StartDate.Date)
                 .Select(x => new
                 {
@@ -31,9 +36,13 @@ namespace HealthParse
                     steps = x.Sum(r => r.Value.SafeParse(0))
                 });
 
-            dailySteps
-                .Select(m => $"{m.date} {m.steps}")
+            workouts[HKConstants.Workouts.Strength]
+                .OrderBy(w => w.StartDate)
+                .Select(w => $"{w.StartDate} - {w.SourceName} - {w.Duration}")
                 .ToList().ForEach(Console.WriteLine);
+            //dailySteps
+            //    .Select(m => $"{m.date} {m.steps}")
+            //    .ToList().ForEach(Console.WriteLine);
             Console.ReadKey();
         }
 
@@ -83,6 +92,11 @@ namespace HealthParse
     {
         public const string BodyMass = "HKQuantityTypeIdentifierBodyMass";
         public const string StepCount = "HKQuantityTypeIdentifierStepCount";
+
+        public static class Workouts
+        {
+            public const string Strength = "HKWorkoutActivityTypeTraditionalStrengthTraining";
+        }
     }
 
     public static class Help
@@ -92,6 +106,11 @@ namespace HealthParse
             double result = 0;
             var parsed = double.TryParse(target, out result);
             return parsed ? result : valueIfParseFail;
+        }
+
+        public static double? ValueDouble(this XAttribute target)
+        {
+            return target?.Value.SafeParse(double.NaN);
         }
 
         public static DateTime ValueDateTime(this XAttribute target)
@@ -131,6 +150,42 @@ namespace HealthParse
         public bool Includes(IRange<DateTime> range)
         {
             return (Start < range.Start) && (range.End < End);
+        }
+    }
+    public class Workout
+    {
+        public string WorkoutType { get; private set; }
+        public string SourceName { get; private set; }
+        public DateTime StartDate { get; private set; }
+        public DateTime EndDate { get; private set; }
+        public DateTime? CreationDate { get; private set; }
+        public double? Duration { get; private set; }
+        public string DurationUnit { get; private set; }
+        public double? TotalDistance { get; private set; }
+        public string TotalDistanceUnit { get; private set; }
+        public double? TotalEnergyBurned { get; private set; }
+        public string TotalEnergyBurnedUnit { get; private set; }
+        public string Device { get; private set; }
+        public XElement Raw { get; private set; }
+
+        public static Workout FromXElement(XElement r)
+        {
+            return new Workout()
+            {
+                WorkoutType = r.Attribute("workoutActivityType").Value,
+                SourceName = r.Attribute("sourceName").Value,
+                EndDate = r.Attribute("endDate").ValueDateTime(),
+                StartDate = r.Attribute("startDate").ValueDateTime(),
+                CreationDate = r.Attribute("creationDate").ValueDateTime(),
+                Duration = r.Attribute("duration").ValueDouble(),
+                DurationUnit = r.Attribute("durationUnit")?.Value,
+                TotalDistance = r.Attribute("totalDistance").ValueDouble(),
+                TotalDistanceUnit = r.Attribute("totalDistanceUnit")?.Value,
+                TotalEnergyBurned = r.Attribute("totalEnergyBurned").ValueDouble(),
+                TotalEnergyBurnedUnit = r.Attribute("totalEnergyBurnedUnit")?.Value,
+                Device = r.Attribute("device")?.Value,
+                Raw = r
+            };
         }
     }
     public class Record
