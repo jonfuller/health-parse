@@ -49,6 +49,7 @@ namespace HealthParse
             //dailySteps
             //    .Select(m => $"{m.date} {m.steps}")
             //    .ToList().ForEach(Console.WriteLine);
+            Console.ReadKey();
         }
 
         private static IEnumerable<Record> PrioritizeSteps(IEnumerable<Record> allTheSteps)
