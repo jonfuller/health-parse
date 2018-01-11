@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Xml.Linq;
 
-namespace HealthParse
+namespace HealthParse.Core
 {
     public static class Extensions
     {
         public static double SafeParse(this string target, double valueIfParseFail)
         {
-            double result = 0;
-            var parsed = double.TryParse(target, out result);
+            var parsed = double.TryParse(target, out double result);
             return parsed ? result : valueIfParseFail;
         }
 

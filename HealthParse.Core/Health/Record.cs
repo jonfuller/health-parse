@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Linq;
 
-namespace HealthParse
+namespace HealthParse.Core.Health
 {
     public class Record
     {
