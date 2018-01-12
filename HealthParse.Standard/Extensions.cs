@@ -1,7 +1,9 @@
-﻿using System;
+﻿using MimeKit;
+using System;
+using System.IO;
 using System.Xml.Linq;
 
-namespace HealthParse.Core
+namespace HealthParse.Standard
 {
     public static class Extensions
     {
@@ -24,6 +26,23 @@ namespace HealthParse.Core
         public static DateTime ToDateTime(this string target)
         {
             return DateTime.Parse(target);
+        }
+
+        public static byte[] ToBytes(this MimeMessage target)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                target.WriteTo(memoryStream);
+                return memoryStream.ToArray();
+            }
+        }
+
+        public static MimeMessage GetMessage(this byte[] target)
+        {
+            using (var memoryStream = new MemoryStream(target))
+            {
+                return MimeMessage.Load(memoryStream);
+            }
         }
     }
 }

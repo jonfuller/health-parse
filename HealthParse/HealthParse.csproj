@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HealthParse.Core\HealthParse.Core.csproj" />
+    <ProjectReference Include="..\HealthParse.Standard\HealthParse.Standard.csproj" />
   </ItemGroup>
 
 </Project>

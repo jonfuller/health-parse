@@ -1,4 +1,4 @@
-﻿namespace HealthParse.Core.Health
+﻿namespace HealthParse.Standard.Health
 {
     public static class HKConstants
     {

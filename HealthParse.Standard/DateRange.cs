@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HealthParse.Core
+namespace HealthParse.Standard
 {
     public class DateRange : IRange<DateTime>
     {

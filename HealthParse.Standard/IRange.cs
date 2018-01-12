@@ -1,4 +1,4 @@
-﻿namespace HealthParse.Core
+﻿namespace HealthParse.Standard
 {
     public interface IRange<T>
     {

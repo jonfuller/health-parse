@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mailin", "Mailin\Mailin.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthParse-Functions", "HealthParse-Functions\HealthParse-Functions.csproj", "{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthParse.Core", "HealthParse.Core\HealthParse.Core.csproj", "{5618B5BA-3D06-4AC3-B2E4-16DA4E133C56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthParse.Standard", "HealthParse.Standard\HealthParse.Standard.csproj", "{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,10 +28,10 @@ Global
 		{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5618B5BA-3D06-4AC3-B2E4-16DA4E133C56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5618B5BA-3D06-4AC3-B2E4-16DA4E133C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5618B5BA-3D06-4AC3-B2E4-16DA4E133C56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5618B5BA-3D06-4AC3-B2E4-16DA4E133C56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

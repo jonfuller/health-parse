@@ -4,8 +4,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Linq;
-using HealthParse.Core;
-using HealthParse.Core.Health;
+using HealthParse.Standard;
+using HealthParse.Standard.Health;
 
 namespace HealthParse
 {
