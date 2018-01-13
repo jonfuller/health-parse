@@ -1,73 +1,20 @@
-using System.Configuration;
-using System.Linq;
+using HealthParse.Mail;
+using HealthParse.Standard.Mail;
 using MailKit;
 using MailKit.Net.Imap;
+using MailKit.Net.Smtp;
 using MailKit.Search;
 using MailKit.Security;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
-using HealthParse.Standard;
-using MailKit.Net.Smtp;
 using MimeKit;
 using System;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage;
-using System.IO;
+using System.Linq;
 
 namespace HealthParseFunctions
 {
-    public static class Fn
-    {
-        public const string ConnectionKeyName = "QueueStorage";
-
-        public static class Qs
-        {
-            public const string IncomingMail = "health-parse-incoming-mail";
-            public const string OutgoingMail = "health-parse-outgoing-mail";
-        }
-
-        public class StorageConfig
-        {
-            public string IncomingMailContainerName { get; private set; }
-            public string OutgoingMailContainerName { get; private set; }
-            public string ConnectionString { get; private set; }
-
-            public static StorageConfig Load()
-            {
-                return new StorageConfig
-                {
-                    IncomingMailContainerName = Environment.GetEnvironmentVariable("StorageBlob_IncomingMail"),
-                    OutgoingMailContainerName = Environment.GetEnvironmentVariable("StorageBlob_OutgoingMail"),
-                    ConnectionString = Environment.GetEnvironmentVariable("StorageBlob_Connection"),
-                };
-            }
-        }
-
-        public class EmailConfig
-        {
-            public string Username;
-            public string Password;
-            public string ImapServer;
-            public int ImapPort;
-            public string SmtpServer;
-            public int SmtpPort;
-
-            public static EmailConfig Load()
-            {
-                return new EmailConfig
-                {
-                    Username = Environment.GetEnvironmentVariable("EmailUsername"),
-                    Password = Environment.GetEnvironmentVariable("EmailPassword"),
-                    ImapServer = Environment.GetEnvironmentVariable("EmailImapServer"),
-                    ImapPort = int.Parse(Environment.GetEnvironmentVariable("EmailImapPort")),
-                    SmtpServer = Environment.GetEnvironmentVariable("EmailSmtpServer"),
-                    SmtpPort = int.Parse(Environment.GetEnvironmentVariable("EmailSmtpPort")),
-                };
-            }
-        }
-    }
-
     public static class ReceiveMail
     {
         [FunctionName("ReceiveMail")]
@@ -109,31 +56,6 @@ namespace HealthParseFunctions
         }
     }
 
-    public static class EmailStorage
-    {
-        public static string SaveEmailToStorage(MimeMessage email, CloudBlobContainer container)
-        {
-            var filename = Path.GetFileName(Path.GetTempFileName());
-            var blockBlob = container.GetBlockBlobReference(filename);
-            var messageBytes = email.ToBytes();
-            blockBlob.UploadFromByteArrayAsync(messageBytes, 0, messageBytes.Length);
-
-            return filename;
-        }
-
-        public static MimeMessage LoadEmailFromStorage(string filename, CloudBlobContainer container)
-        {
-            var blockBlob = container.GetBlockBlobReference(filename);
-            using (var stream = new MemoryStream())
-            {
-                blockBlob.DownloadToStreamAsync(stream).Wait();
-
-                stream.Position = 0;
-                return MimeMessage.Load(stream);
-            }
-        }
-    }
-
     public static class DataExtraction
     {
         [FunctionName("ExtractData")]
@@ -149,17 +71,21 @@ namespace HealthParseFunctions
             var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
             var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, incomingContainer);
 
+            var attachments = originalEmail.LoadAttachments();
+            var exportAttachment = attachments.First(a => a.Item1 == "export.zip");
             // parse data
             // build excel
-            var attachment = System.Text.Encoding.Default.GetBytes("hello world");
-            var reply = ConstructMessage(originalEmail, attachment);
+            //var attachment = System.Text.Encoding.Default.GetBytes("hello world");
+            //var attachmentName = $"export.{message.Date.Date.ToString("yyyy-mm-dd")}.xlsx"
+            var reply = ConstructMessage(originalEmail, exportAttachment.Item2, "export.zip");
 
             var filename = EmailStorage.SaveEmailToStorage(reply, outgoingContainer);
             outputQueue.Add(filename);
             log.Info($"extracted data, enqueueing reply - {reply.To.ToString()} - {filename}");
         }
 
-        private static MimeMessage ConstructMessage(MimeMessage message, byte[] attachment)
+
+        private static MimeMessage ConstructMessage(MimeMessage message, byte[] attachment, string attachmentName)
         {
             var reply = new MimeMessage();
 
@@ -196,7 +122,7 @@ namespace HealthParseFunctions
             var builder = new BodyBuilder();
 
             builder.TextBody = @"Hey there, I saw your health data... good work!";
-            builder.Attachments.Add($"export.{message.Date.Date.ToString("yyyy-mm-dd")}.xlsx", attachment);
+            builder.Attachments.Add(attachmentName, attachment);
             reply.Body = builder.ToMessageBody();
 
             return reply;
