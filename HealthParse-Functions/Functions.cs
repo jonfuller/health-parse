@@ -1,4 +1,5 @@
 using HealthParse.Mail;
+using HealthParse.Standard.Health;
 using HealthParse.Standard.Mail;
 using MailKit;
 using MailKit.Net.Imap;
@@ -71,21 +72,48 @@ namespace HealthParseFunctions
             var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
             var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, incomingContainer);
 
-            var attachments = originalEmail.LoadAttachments();
-            var exportAttachment = attachments.First(a => a.Item1 == "export.zip");
-            // parse data
-            // build excel
-            //var attachment = System.Text.Encoding.Default.GetBytes("hello world");
-            //var attachmentName = $"export.{message.Date.Date.ToString("yyyy-mm-dd")}.xlsx"
-            var reply = ConstructMessage(originalEmail, exportAttachment.Item2, "export.zip");
+            var reply = ProcessEmail(originalEmail);
 
             var filename = EmailStorage.SaveEmailToStorage(reply, outgoingContainer);
             outputQueue.Add(filename);
             log.Info($"extracted data, enqueueing reply - {reply.To.ToString()} - {filename}");
         }
 
+        private static MimeMessage ProcessEmail(MimeMessage originalEmail)
+        {
+            var attachments = originalEmail.LoadAttachments();
+            var exportAttachment = attachments.FirstOrDefault(a => a.Item1 == "export.zip");
 
-        private static MimeMessage ConstructMessage(MimeMessage message, byte[] attachment, string attachmentName)
+            if (exportAttachment != null)
+            {
+                var attachment = ExcelReport.CreateReport(exportAttachment.Item2);
+                var attachmentName = $"export.{originalEmail.Date.Date.ToString("yyyy-mm-dd")}.xlsx";
+                return ConstructExcelReportMessage(originalEmail, attachment, attachmentName);
+            }
+
+            // TODO: what if no export.zip?
+            // TODO: other scenarios
+
+            return ConstructErrorMessage(originalEmail);
+        }
+
+        private static MimeMessage ConstructErrorMessage(MimeMessage originalEmail)
+        {
+            return ConstructReply(originalEmail, builder =>
+            {
+                builder.TextBody = @"Something went wrong... sorry about that!";
+            });
+        }
+        private static MimeMessage ConstructExcelReportMessage(MimeMessage message, byte[] attachment, string attachmentName)
+        {
+            return ConstructReply(message, builder =>
+            {
+                builder.TextBody = @"Hey there, I saw your health data... good work!";
+                builder.Attachments.Add(attachmentName, attachment);
+            });
+        }
+
+        private static MimeMessage ConstructReply(MimeMessage message, Action<BodyBuilder> builderAction)
         {
             var reply = new MimeMessage();
 
@@ -120,9 +148,8 @@ namespace HealthParseFunctions
             }
 
             var builder = new BodyBuilder();
+            builderAction(builder);
 
-            builder.TextBody = @"Hey there, I saw your health data... good work!";
-            builder.Attachments.Add(attachmentName, attachment);
             reply.Body = builder.ToMessageBody();
 
             return reply;

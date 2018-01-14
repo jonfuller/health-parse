@@ -12,7 +12,7 @@ namespace HealthParse.Mail
             var filename = Path.GetFileName(Path.GetTempFileName());
             var blockBlob = container.GetBlockBlobReference(filename);
             var messageBytes = email.ToBytes();
-            blockBlob.UploadFromByteArrayAsync(messageBytes, 0, messageBytes.Length);
+            blockBlob.UploadFromByteArrayAsync(messageBytes, 0, messageBytes.Length).Wait();
 
             return filename;
         }
