@@ -15,7 +15,7 @@ namespace HealthParse.Standard.Health
 
         void ISheetBuilder.Build(ExcelWorksheet sheet)
         {
-            var steps = PrioritizeSteps(_records[HKConstants.Records.StepCount])
+            var steps = StepHelper.PrioritizeSteps(_records[HKConstants.Records.StepCount])
                 .GroupBy(s => s.StartDate.Date)
                 .Select(x => new
                 {
@@ -27,30 +27,5 @@ namespace HealthParse.Standard.Health
             sheet.WriteData(steps);
         }
 
-        private static IEnumerable<Record> PrioritizeSteps(IEnumerable<Record> allTheSteps)
-        {
-            var justSteps = allTheSteps.OrderBy(r => r.StartDate).ToList();
-
-            for (int i = 0; i < justSteps.Count; i++)
-            {
-                var current = justSteps[i];
-                var next = justSteps.Skip(i + 1).FirstOrDefault();
-                var nextOverlaps = next != null && current.DateRange.Includes(next.StartDate);
-
-                if (nextOverlaps)
-                {
-                    var keeper = new[] { current, next }
-                        .First(l => l.Raw.Attribute("sourceName").Value.Contains("Watch"));
-                    var loser = new[] { current, next }.Where(x => x != keeper).Single();
-
-                    justSteps.Remove(loser);
-                    i--;
-                }
-                else
-                {
-                    yield return current;
-                }
-            }
-        }
     }
 }

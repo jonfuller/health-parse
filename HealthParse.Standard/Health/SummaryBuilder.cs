@@ -1,5 +1,7 @@
 ﻿using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HealthParse.Standard.Health
 {
@@ -16,7 +18,16 @@ namespace HealthParse.Standard.Health
 
         void ISheetBuilder.Build(ExcelWorksheet sheet)
         {
-            sheet.Cells["A1"].Value = "Hello World";
+            var stepsByMonth = StepHelper.PrioritizeSteps(_records[HKConstants.Records.StepCount])
+                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .Select(x => new
+                {
+                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
+                    steps = x.Sum(r => r.Value.SafeParse(0))
+                })
+                .OrderByDescending(s => s.date);
+
+            sheet.WriteData(stepsByMonth);
         }
     }
 }
