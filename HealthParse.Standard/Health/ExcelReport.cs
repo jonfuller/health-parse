@@ -1,8 +1,5 @@
 ﻿using OfficeOpenXml;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -14,31 +11,22 @@ namespace HealthParse.Standard.Health
         {
             using (var inputStream = new MemoryStream(exportZip))
             using (var outputStream = new MemoryStream())
-            using (var reader = new StreamReader(inputStream))
-            using (var writer = new StreamWriter(outputStream))
+            using (var excelFile = new ExcelPackage())
             {
-                CreateReport(writer, reader);
-                writer.Flush();
+                var export = LoadExportXml(inputStream);
+
+                BuildReport(export, excelFile.Workbook);
+
+                excelFile.SaveAs(outputStream);
+
                 return outputStream.ToArray();
             }
         }
 
-        public static void CreateReport(StreamWriter output, StreamReader exportZip)
+        private static XDocument LoadExportXml(Stream exportZip)
         {
-            using (var p = new ExcelPackage())
-            {
-                var export = LoadExport(exportZip);
-
-                BuildReport(export, p.Workbook);
-
-                p.SaveAs(output.BaseStream);
-            }
-        }
-
-        private static XDocument LoadExport(StreamReader exportZip)
-        {
-            return ReadArchive(
-                exportZip.BaseStream,
+            return ZipUtilities.ReadArchive(
+                exportZip,
                 entry => entry.FullName == "apple_health_export/export.xml",
                 entry => XDocument.Load(entry.Open()))
             .FirstOrDefault();
@@ -56,92 +44,13 @@ namespace HealthParse.Standard.Health
                 .GroupBy(r => r.WorkoutType)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-            BuildSummary(records, workouts, workbook.Worksheets.Add("Summary"));
-            BuildSteps(records[HKConstants.Records.StepCount], workbook.Worksheets.Add("Steps"));
-        }
-
-        private static void BuildSummary(Dictionary<string, IEnumerable<Record>> records, Dictionary<string, IEnumerable<Workout>> workouts, ExcelWorksheet worksheet)
-        {
-            worksheet.Cells["A1"].Value = "Hello World";
-        }
-
-        private static void BuildSteps(IEnumerable<Record> records, ExcelWorksheet worksheet)
-        {
-            var steps = PrioritizeSteps(records)
-                .GroupBy(s => s.StartDate.Date)
-                .Select(x => new
-                {
-                    date = x.Key,
-                    steps = x.Sum(r => r.Value.SafeParse(0))
-                })
-                .OrderByDescending(s => s.date);
-
-            Write(steps, worksheet);
-        }
-
-        private static IEnumerable<Record> PrioritizeSteps(IEnumerable<Record> allTheSteps)
-        {
-            var justSteps = allTheSteps.OrderBy(r => r.StartDate).ToList();
-
-            for (int i = 0; i < justSteps.Count; i++)
+            var sheetBuilders = new[]
             {
-                var current = justSteps[i];
-                var next = justSteps.Skip(i + 1).FirstOrDefault();
-                var nextOverlaps = next != null && current.DateRange.Includes(next.StartDate);
+                new {builder = (ISheetBuilder)new SummaryBuilder(records, workouts), sheetName = "Summary" },
+                new {builder = (ISheetBuilder)new StepBuilder(records), sheetName = "Steps" },
+            };
 
-                if (nextOverlaps)
-                {
-                    var keeper = new[] { current, next }
-                        .First(l => l.Raw.Attribute("sourceName").Value.Contains("Watch"));
-                    var loser = new[] { current, next }.Where(x => x != keeper).Single();
-
-                    justSteps.Remove(loser);
-                    i--;
-                }
-                else
-                {
-                    yield return current;
-                }
-            }
-        }
-
-        private static IEnumerable<IEnumerable<string>> GetLines(IEnumerable<object> rows)
-        {
-            if (!rows.Any())
-            {
-                yield break;
-            }
-
-            var first = rows.First();
-            var props = first.GetType().GetProperties();
-
-            yield return props.Select(prop => prop.Name);
-            foreach (var row in rows)
-            {
-                yield return props.Select(prop => prop.GetValue(row).ToString());
-            }
-        }
-
-        private static void Write(IEnumerable<object> rows, ExcelWorksheet worksheet)
-        {
-            GetLines(rows)
-                .SelectMany((row, rowNum) => row.Select((value, columnNum) => new { value, rowNum, columnNum }))
-                .ToList()
-                .ForEach(item => worksheet.Cells[item.rowNum + 1, item.columnNum + 1].Value = item.value);
-        }
-
-        private static IEnumerable<T> ReadArchive<T>(Stream exportZip, Func<ZipArchiveEntry, bool> entryFilter, Func<ZipArchiveEntry, T> eachEntry)
-        {
-            using (var archive = new ZipArchive(exportZip, ZipArchiveMode.Read, true))
-            {
-                foreach (var entry in archive.Entries)
-                {
-                    if (entryFilter(entry))
-                    {
-                        yield return eachEntry(entry);
-                    }
-                }
-            }
+            sheetBuilders.ToList().ForEach(s => s.builder.Build(workbook.Worksheets.Add(s.sheetName)));
         }
     }
 }
