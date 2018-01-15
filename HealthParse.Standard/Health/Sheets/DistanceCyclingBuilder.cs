@@ -15,7 +15,7 @@ namespace HealthParse.Standard.Health.Sheets
         void ISheetBuilder.Build(ExcelWorksheet sheet)
         {
             var cycling = _records[HKConstants.Records.DistanceCycling]
-                .OrderBy(r => r.StartDate)
+                .OrderByDescending(r => r.StartDate)
                 .Select(r => new
                 {
                     date = r.StartDate,

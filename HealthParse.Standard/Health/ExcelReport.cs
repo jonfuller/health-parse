@@ -51,6 +51,7 @@ namespace HealthParse.Standard.Health
                 new {builder = (ISheetBuilder)new StepBuilder(records), sheetName = "Steps" },
                 new {builder = (ISheetBuilder)new DistanceCyclingBuilder(records), sheetName = "Cycling (Distance)" },
                 new {builder = (ISheetBuilder)new CyclingWorkoutBuilder(workouts), sheetName = "Cycling (Workouts)" },
+                new {builder = (ISheetBuilder)new StrengthTrainingBuilder(workouts), sheetName = "Strength Training" },
             };
 
             sheetBuilders.ToList().ForEach(s => s.builder.Build(workbook.Worksheets.Add(s.sheetName)));

@@ -57,15 +57,26 @@ namespace HealthParse.Standard.Health.Sheets
                     distance = x.Sum(c => c.Raw.Attribute("value").ValueDouble(0)),
                 });
 
+            var stregthTrainings = _workouts[HKConstants.Workouts.Strength]
+                .OrderBy(w => w.StartDate)
+                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .Select(x => new
+                {
+                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
+                    duration = x.Sum(c => c.Raw.Attribute("duration").ValueDouble(0)),
+                });
+
             var healthMonths = recordMonths.Concat(workoutMonths).Distinct();
 
             var dataByMonth = from month in healthMonths
                       join steps in stepsByMonth on month equals steps.date into tmpSteps
                       join wCycling in cyclingWorkouts on month equals wCycling.date into tmpWCycling
                       join rCycling in cyclingDistances on month equals rCycling.date into tmpRCycling
+                      join strength in stregthTrainings on month equals strength.date into tmpStrength
                       from steps in tmpSteps.DefaultIfEmpty()
                       from wCycling in tmpWCycling.DefaultIfEmpty()
                       from rCycling in tmpRCycling.DefaultIfEmpty()
+                      from strength in tmpStrength.DefaultIfEmpty()
                       orderby month descending
                       select new
                       {
@@ -74,6 +85,7 @@ namespace HealthParse.Standard.Health.Sheets
                           cyclingWorkoutDistance = wCycling?.distance,
                           cyclingWorkoutMinutes = wCycling?.minutes,
                           distanceCyclingDistance = rCycling?.distance,
+                          strengthMinutes = strength?.duration
                       };
 
             sheet.WriteData(dataByMonth);
