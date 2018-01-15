@@ -1,6 +1,6 @@
 ﻿using OfficeOpenXml;
 
-namespace HealthParse.Standard.Health
+namespace HealthParse.Standard.Health.Sheets
 {
     public interface ISheetBuilder
     {

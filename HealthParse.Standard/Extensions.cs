@@ -13,9 +13,9 @@ namespace HealthParse.Standard
             return parsed ? result : valueIfParseFail;
         }
 
-        public static double? ValueDouble(this XAttribute target)
+        public static double? ValueDouble(this XAttribute target, double defaultValue = double.NaN)
         {
-            return target?.Value.SafeParse(double.NaN);
+            return target?.Value.SafeParse(defaultValue);
         }
 
         public static DateTime ValueDateTime(this XAttribute target)

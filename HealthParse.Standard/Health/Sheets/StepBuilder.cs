@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace HealthParse.Standard.Health
+namespace HealthParse.Standard.Health.Sheets
 {
     public class StepBuilder : ISheetBuilder
     {
@@ -26,6 +26,5 @@ namespace HealthParse.Standard.Health
 
             sheet.WriteData(steps);
         }
-
     }
 }

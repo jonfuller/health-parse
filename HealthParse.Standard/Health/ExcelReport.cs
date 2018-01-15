@@ -1,4 +1,5 @@
-﻿using OfficeOpenXml;
+﻿using HealthParse.Standard.Health.Sheets;
+using OfficeOpenXml;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -32,7 +33,7 @@ namespace HealthParse.Standard.Health
             .FirstOrDefault();
         }
 
-        private static void BuildReport(XDocument export, ExcelWorkbook workbook)
+        public static void BuildReport(XDocument export, ExcelWorkbook workbook)
         {
             var records = export.Descendants("Record")
                 .Select(Record.FromXElement)
@@ -48,6 +49,8 @@ namespace HealthParse.Standard.Health
             {
                 new {builder = (ISheetBuilder)new SummaryBuilder(records, workouts), sheetName = "Summary" },
                 new {builder = (ISheetBuilder)new StepBuilder(records), sheetName = "Steps" },
+                new {builder = (ISheetBuilder)new DistanceCyclingBuilder(records), sheetName = "Cycling (Distance)" },
+                new {builder = (ISheetBuilder)new CyclingWorkoutBuilder(workouts), sheetName = "Cycling (Workouts)" },
             };
 
             sheetBuilders.ToList().ForEach(s => s.builder.Build(workbook.Worksheets.Add(s.sheetName)));

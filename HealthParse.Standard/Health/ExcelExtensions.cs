@@ -27,7 +27,7 @@ namespace HealthParse.Standard.Health
             yield return props.Select(prop => prop.Name);
             foreach (var row in rows)
             {
-                yield return props.Select(prop => prop.GetValue(row).ToString());
+                yield return props.Select(prop => prop.GetValue(row)?.ToString());
             }
         }
 
