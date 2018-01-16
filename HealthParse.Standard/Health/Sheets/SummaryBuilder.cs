@@ -63,7 +63,27 @@ namespace HealthParse.Standard.Health.Sheets
                 .Select(x => new
                 {
                     date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    duration = x.Sum(c => c.Raw.Attribute("duration").ValueDouble(0)),
+                    duration = x.Sum(c => c.Duration),
+                });
+
+            var runnings = _workouts[HKConstants.Workouts.Running]
+                .OrderBy(w => w.StartDate)
+                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .Select(x => new
+                {
+                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
+                    distance = x.Sum(c => c.TotalDistance),
+                    duration = x.Sum(c => c.Duration),
+                });
+
+            var walkings = _workouts[HKConstants.Workouts.Running]
+                .OrderBy(w => w.StartDate)
+                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .Select(x => new
+                {
+                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
+                    distance = x.Sum(c => c.TotalDistance),
+                    duration = x.Sum(c => c.Duration),
                 });
 
             var healthMonths = recordMonths.Concat(workoutMonths).Distinct();
@@ -73,10 +93,14 @@ namespace HealthParse.Standard.Health.Sheets
                       join wCycling in cyclingWorkouts on month equals wCycling.date into tmpWCycling
                       join rCycling in cyclingDistances on month equals rCycling.date into tmpRCycling
                       join strength in stregthTrainings on month equals strength.date into tmpStrength
+                      join running in runnings on month equals running.date into tmpRunning
+                      join walking in walkings on month equals walking.date into tmpWalking
                       from steps in tmpSteps.DefaultIfEmpty()
                       from wCycling in tmpWCycling.DefaultIfEmpty()
                       from rCycling in tmpRCycling.DefaultIfEmpty()
                       from strength in tmpStrength.DefaultIfEmpty()
+                      from running in tmpRunning.DefaultIfEmpty()
+                      from walking in tmpWalking.DefaultIfEmpty()
                       orderby month descending
                       select new
                       {
@@ -85,7 +109,11 @@ namespace HealthParse.Standard.Health.Sheets
                           cyclingWorkoutDistance = wCycling?.distance,
                           cyclingWorkoutMinutes = wCycling?.minutes,
                           distanceCyclingDistance = rCycling?.distance,
-                          strengthMinutes = strength?.duration
+                          strengthMinutes = strength?.duration,
+                          runningDistance = running?.distance,
+                          runningDuration = running?.duration,
+                          walkingDistance = walking?.distance,
+                          walkingDuration = walking?.duration,
                       };
 
             sheet.WriteData(dataByMonth);
