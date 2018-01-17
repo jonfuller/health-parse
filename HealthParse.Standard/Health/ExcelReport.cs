@@ -1,5 +1,7 @@
 ﻿using HealthParse.Standard.Health.Sheets;
 using OfficeOpenXml;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -60,16 +62,30 @@ namespace HealthParse.Standard.Health
                 strengthTrainingBuilder,
                 distanceCyclingBuilder);
 
-            var sheetBuilders = new[]
-            {
-                new {builder = (ISheetBuilder)summaryBuilder, sheetName = "Summary" },
-                new {builder = (ISheetBuilder)stepBuilder, sheetName = "Steps" },
-                new {builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)" },
-                new {builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)" },
-                new {builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training" },
-                new {builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running" },
-                new {builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking" },
-            };
+            var monthBuilders = Enumerable.Range(0, 3)
+                .Select(i => DateTime.Today.AddMonths(-i))
+                .Select(d => new { d.Year, d.Month })
+                .Select(m => new
+                {
+                    builder = (ISheetBuilder)new MonthSummaryBuilder(records, workouts,
+                        m.Year, m.Month,
+                        stepBuilder,
+                        cyclingWorkoutBuilder,
+                        runningWorkoutBuilder,
+                        walkingWorkoutBuilder,
+                        strengthTrainingBuilder,
+                        distanceCyclingBuilder),
+                    sheetName = $"Month Summary - {m.Year} - {m.Month}",
+                });
+
+            var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = "Overall Summary"} }
+                .Concat(monthBuilders)
+                .Concat(new { builder = (ISheetBuilder)stepBuilder, sheetName = "Steps" })
+                .Concat(new { builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)" })
+                .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)" })
+                .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training" })
+                .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running" })
+                .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking" });
 
             sheetBuilders.ToList().ForEach(s =>
             {

@@ -5,7 +5,7 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public abstract class WorkoutBuilder : ISheetBuilder<WorkoutBuilder.MonthlyWorkout>
+    public abstract class WorkoutBuilder : ISheetBuilder<WorkoutBuilder.WorkoutItem>
     {
         protected Dictionary<string, IEnumerable<Workout>> _workouts;
         private Func<Workout, object> _selector;
@@ -27,16 +27,30 @@ namespace HealthParse.Standard.Health.Sheets
             sheet.WriteData(workouts);
         }
 
-        IEnumerable<MonthlyWorkout> ISheetBuilder<MonthlyWorkout>.BuildSummary()
+        IEnumerable<WorkoutItem> ISheetBuilder<WorkoutItem>.BuildSummary()
         {
             return _workouts[_workoutKey]
                 .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new MonthlyWorkout(x.Key.Year, x.Key.Month, x.Sum(c => c.TotalDistance ?? 0), x.Sum(c => c.Duration ?? 0)));
+                .Select(x => new WorkoutItem(x.Key.Year, x.Key.Month, x.Sum(c => c.TotalDistance ?? 0), x.Sum(c => c.Duration ?? 0)));
         }
 
-        public class MonthlyWorkout : MonthlyItem
+        IEnumerable<WorkoutItem> ISheetBuilder<WorkoutItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
-            public MonthlyWorkout(int year, int month, double distance, double duration) : base(year, month)
+            return _workouts[_workoutKey]
+                .Where(x => dateRange.Includes(x.StartDate))
+                .Select(x => new WorkoutItem(x.StartDate.Date, x.TotalDistance ?? 0, x.Duration ?? 0))
+                .OrderByDescending(x => x.Date);
+        }
+
+        public class WorkoutItem : DatedItem
+        {
+            public WorkoutItem(DateTime date, double distance, double duration) : base(date)
+            {
+                Distance = distance;
+                Duration = duration;
+            }
+
+            public WorkoutItem(int year, int month, double distance, double duration) : base(year, month)
             {
                 Distance = distance;
                 Duration = duration;

@@ -8,22 +8,24 @@ namespace HealthParse.Standard.Health.Sheets
     {
         void Build(ExcelWorksheet sheet);
     }
-    public interface ISheetBuilder<TMonthly> : ISheetBuilder where TMonthly : MonthlyItem
+    public interface ISheetBuilder<TItem> : ISheetBuilder where TItem : DatedItem
     {
-        IEnumerable<TMonthly> BuildSummary();
+        IEnumerable<TItem> BuildSummary();
+        IEnumerable<TItem> BuildSummaryForDateRange(IRange<DateTime> dateRange);
     }
 
-    public class MonthlyItem
+    public class DatedItem
     {
-        private readonly int _year;
-        private readonly int _month;
-
-        public MonthlyItem(int year, int month)
+        public DatedItem(int year, int month)
+            : this(new DateTime(year, month, 1))
         {
-            _year = year;
-            _month = month;
+
+        }
+        protected DatedItem(DateTime date)
+        {
+            Date = date;
         }
 
-        public DateTime Date { get { return new DateTime(_year, _month, 1); } }
+        public DateTime Date { get; }
     }
 }

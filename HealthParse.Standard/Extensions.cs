@@ -1,12 +1,18 @@
 ﻿using MimeKit;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace HealthParse.Standard
 {
     public static class Extensions
     {
+        public static IEnumerable<T> Concat<T>(this IEnumerable<T> target, T item)
+        {
+            return target.Concat(new[] { item });
+        }
         public static double SafeParse(this string target, double valueIfParseFail)
         {
             var parsed = double.TryParse(target, out double result);
