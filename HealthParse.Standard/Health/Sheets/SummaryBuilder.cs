@@ -1,5 +1,4 @@
 ﻿using OfficeOpenXml;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,11 +8,31 @@ namespace HealthParse.Standard.Health.Sheets
     {
         private Dictionary<string, IEnumerable<Record>> _records;
         private Dictionary<string, IEnumerable<Workout>> _workouts;
+        private readonly ISheetBuilder<StepBuilder.MonthlyStep> _stepBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.MonthlyWorkout> _cyclingBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.MonthlyWorkout> _runningBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.MonthlyWorkout> _walkingBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.MonthlyWorkout> _strengthBuilder;
+        private readonly ISheetBuilder<DistanceCyclingBuilder.MonthlyCycling> _distanceCyclingBuilder;
 
-        public SummaryBuilder(Dictionary<string, IEnumerable<Record>> records, Dictionary<string, IEnumerable<Workout>> workouts)
+        public SummaryBuilder(Dictionary<string, IEnumerable<Record>> records, Dictionary<string, IEnumerable<Workout>> workouts,
+            ISheetBuilder<StepBuilder.MonthlyStep> stepBuilder,
+            ISheetBuilder<WorkoutBuilder.MonthlyWorkout> cyclingBuilder,
+            ISheetBuilder<WorkoutBuilder.MonthlyWorkout> runningBuilder,
+            ISheetBuilder<WorkoutBuilder.MonthlyWorkout> walkingBuilder,
+            ISheetBuilder<WorkoutBuilder.MonthlyWorkout> strengthBuilder,
+            ISheetBuilder<DistanceCyclingBuilder.MonthlyCycling> distanceCyclingBuilder
+            )
         {
             _records = records;
             _workouts = workouts;
+
+            _stepBuilder = stepBuilder;
+            _cyclingBuilder = cyclingBuilder;
+            _runningBuilder = runningBuilder;
+            _walkingBuilder = walkingBuilder;
+            _strengthBuilder = strengthBuilder;
+            _distanceCyclingBuilder = distanceCyclingBuilder;
         }
 
         void ISheetBuilder.Build(ExcelWorksheet sheet)
@@ -21,80 +40,31 @@ namespace HealthParse.Standard.Health.Sheets
             var recordMonths = _records.Values
                 .SelectMany(r => r)
                 .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(g => new DateTime(g.Key.Year, g.Key.Month, 1));
+                .Select(g => g.Key);
 
             var workoutMonths = _workouts.Values
                 .SelectMany(r => r)
                 .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(g => new DateTime(g.Key.Year, g.Key.Month, 1));
+                .Select(g => g.Key);
 
-            var stepsByMonth = StepHelper.PrioritizeSteps(_records[HKConstants.Records.StepCount])
-                .OrderBy(w => w.StartDate)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new
-                {
-                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    steps = x.Sum(r => r.Value.SafeParse(0))
-                })
-                .OrderByDescending(s => s.date);
+            var healthMonths = recordMonths.Concat(workoutMonths)
+                .Distinct()
+                .Select(m => new MonthlyItem(m.Year, m.Month).Date);
 
-            var cyclingWorkouts = _workouts[HKConstants.Workouts.Cycling]
-                .OrderBy(w => w.StartDate)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new
-                {
-                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    distance = x.Sum(c => c.TotalDistance),
-                    minutes = x.Sum(c => c.Duration ?? 0)
-                });
-
-            var cyclingDistances = _records[HKConstants.Records.DistanceCycling]
-                .OrderBy(w => w.StartDate)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new
-                {
-                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    distance = x.Sum(c => c.Raw.Attribute("value").ValueDouble(0)),
-                });
-
-            var stregthTrainings = _workouts[HKConstants.Workouts.Strength]
-                .OrderBy(w => w.StartDate)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new
-                {
-                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    duration = x.Sum(c => c.Duration),
-                });
-
-            var runnings = _workouts[HKConstants.Workouts.Running]
-                .OrderBy(w => w.StartDate)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new
-                {
-                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    distance = x.Sum(c => c.TotalDistance),
-                    duration = x.Sum(c => c.Duration),
-                });
-
-            var walkings = _workouts[HKConstants.Workouts.Running]
-                .OrderBy(w => w.StartDate)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
-                .Select(x => new
-                {
-                    date = new DateTime(x.Key.Year, x.Key.Month, 1),
-                    distance = x.Sum(c => c.TotalDistance),
-                    duration = x.Sum(c => c.Duration),
-                });
-
-            var healthMonths = recordMonths.Concat(workoutMonths).Distinct();
+            var stepsByMonth = _stepBuilder.BuildSummary();
+            var cyclingWorkouts = _cyclingBuilder.BuildSummary();
+            var cyclingDistances = _distanceCyclingBuilder.BuildSummary();
+            var stregthTrainings = _strengthBuilder.BuildSummary();
+            var runnings = _runningBuilder.BuildSummary();
+            var walkings = _walkingBuilder.BuildSummary();
 
             var dataByMonth = from month in healthMonths
-                      join steps in stepsByMonth on month equals steps.date into tmpSteps
-                      join wCycling in cyclingWorkouts on month equals wCycling.date into tmpWCycling
-                      join rCycling in cyclingDistances on month equals rCycling.date into tmpRCycling
-                      join strength in stregthTrainings on month equals strength.date into tmpStrength
-                      join running in runnings on month equals running.date into tmpRunning
-                      join walking in walkings on month equals walking.date into tmpWalking
+                      join steps in stepsByMonth on month equals steps.Date into tmpSteps
+                      join wCycling in cyclingWorkouts on month equals wCycling.Date into tmpWCycling
+                      join rCycling in cyclingDistances on month equals rCycling.Date into tmpRCycling
+                      join strength in stregthTrainings on month equals strength.Date into tmpStrength
+                      join running in runnings on month equals running.Date into tmpRunning
+                      join walking in walkings on month equals walking.Date into tmpWalking
                       from steps in tmpSteps.DefaultIfEmpty()
                       from wCycling in tmpWCycling.DefaultIfEmpty()
                       from rCycling in tmpRCycling.DefaultIfEmpty()
@@ -105,15 +75,15 @@ namespace HealthParse.Standard.Health.Sheets
                       select new
                       {
                           month,
-                          steps?.steps,
-                          cyclingWorkoutDistance = wCycling?.distance,
-                          cyclingWorkoutMinutes = wCycling?.minutes,
-                          distanceCyclingDistance = rCycling?.distance,
-                          strengthMinutes = strength?.duration,
-                          runningDistance = running?.distance,
-                          runningDuration = running?.duration,
-                          walkingDistance = walking?.distance,
-                          walkingDuration = walking?.duration,
+                          steps?.Steps,
+                          cyclingWorkoutDistance = wCycling?.Distance,
+                          cyclingWorkoutMinutes = wCycling?.Duration,
+                          distanceCyclingDistance = rCycling?.Distance,
+                          strengthMinutes = strength?.Duration,
+                          runningDistance = running?.Distance,
+                          runningDuration = running?.Duration,
+                          walkingDistance = walking?.Distance,
+                          walkingDuration = walking?.Duration,
                       };
 
             sheet.WriteData(dataByMonth);

@@ -45,18 +45,37 @@ namespace HealthParse.Standard.Health
                 .GroupBy(r => r.WorkoutType)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
+            var stepBuilder = new StepBuilder(records);
+            var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts);
+            var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts);
+            var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts);
+            var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts);
+            var distanceCyclingBuilder = new DistanceCyclingBuilder(records);
+
+            var summaryBuilder = new SummaryBuilder(records, workouts,
+                stepBuilder,
+                cyclingWorkoutBuilder,
+                runningWorkoutBuilder,
+                walkingWorkoutBuilder,
+                strengthTrainingBuilder,
+                distanceCyclingBuilder);
+
             var sheetBuilders = new[]
             {
-                new {builder = (ISheetBuilder)new SummaryBuilder(records, workouts), sheetName = "Summary" },
-                new {builder = (ISheetBuilder)new StepBuilder(records), sheetName = "Steps" },
-                new {builder = (ISheetBuilder)new DistanceCyclingBuilder(records), sheetName = "Cycling (Distance)" },
-                new {builder = (ISheetBuilder)new CyclingWorkoutBuilder(workouts), sheetName = "Cycling (Workouts)" },
-                new {builder = (ISheetBuilder)new StrengthTrainingBuilder(workouts), sheetName = "Strength Training" },
-                new {builder = (ISheetBuilder)new RunningWorkoutBuilder(workouts), sheetName = "Running" },
-                new {builder = (ISheetBuilder)new WalkingWorkoutBuilder(workouts), sheetName = "Walking" },
+                new {builder = (ISheetBuilder)summaryBuilder, sheetName = "Summary" },
+                new {builder = (ISheetBuilder)stepBuilder, sheetName = "Steps" },
+                new {builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)" },
+                new {builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)" },
+                new {builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training" },
+                new {builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running" },
+                new {builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking" },
             };
 
-            sheetBuilders.ToList().ForEach(s => s.builder.Build(workbook.Worksheets.Add(s.sheetName)));
+            sheetBuilders.ToList().ForEach(s =>
+            {
+                var sheet = workbook.Worksheets.Add(s.sheetName);
+                s.builder.Build(sheet);
+            });
         }
     }
 }

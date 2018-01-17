@@ -4,7 +4,7 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class DistanceCyclingBuilder : ISheetBuilder
+    public class DistanceCyclingBuilder : ISheetBuilder<DistanceCyclingBuilder.MonthlyCycling>
     {
         private readonly Dictionary<string, IEnumerable<Record>> _records;
 
@@ -24,6 +24,23 @@ namespace HealthParse.Standard.Health.Sheets
                 });
 
             sheet.WriteData(cycling);
+        }
+
+        IEnumerable<MonthlyCycling> ISheetBuilder<MonthlyCycling>.BuildSummary()
+        {
+            return _records[HKConstants.Records.DistanceCycling]
+                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .Select(x => new MonthlyCycling(x.Key.Year, x.Key.Month, x.Sum(c => c.Raw.Attribute("value").ValueDouble(0) ?? 0)));
+        }
+
+        public class MonthlyCycling : MonthlyItem
+        {
+            public MonthlyCycling(int year, int month, double distance) : base(year, month)
+            {
+                Distance = distance;
+            }
+
+            public double Distance { get; }
         }
     }
 }
