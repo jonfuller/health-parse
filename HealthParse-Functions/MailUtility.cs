@@ -21,7 +21,7 @@ namespace HealthParseFunctions
             var exportAttachment = attachments.Single(a => a.Item1 == "export.zip");
 
             var attachment = ExcelReport.CreateReport(exportAttachment.Item2);
-            var attachmentName = $"export.{originalEmail.Date.Date.ToString("yyyy-mm-dd")}.xlsx";
+            var attachmentName = $"export.{originalEmail.Date.Date:yyyy-mm-dd}.xlsx";
 
             return ConstructReply(originalEmail, new MailboxAddress(from), builder =>
             {
@@ -32,7 +32,7 @@ namespace HealthParseFunctions
 
         public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from)
         {
-            var attachments = originalEmail.LoadAttachments();
+            var attachments = originalEmail.LoadAttachments().ToList();
 
             try
             {

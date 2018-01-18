@@ -20,10 +20,8 @@ namespace HealthParse.Standard.Mail
         {
             using (var stream = new MemoryStream())
             {
-                if (attachment is MessagePart)
+                if (attachment is MessagePart rfc822)
                 {
-                    var rfc822 = (MessagePart)attachment;
-
                     rfc822.Message.WriteTo(stream);
                 }
                 else

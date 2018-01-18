@@ -66,8 +66,7 @@ namespace HealthParse.Standard.Health
                 .Select(d => new { d.Year, d.Month })
                 .Select(m => new
                 {
-                    builder = (ISheetBuilder)new MonthSummaryBuilder(records, workouts,
-                        m.Year, m.Month,
+                    builder = (ISheetBuilder)new MonthSummaryBuilder(m.Year, m.Month,
                         stepBuilder,
                         cyclingWorkoutBuilder,
                         runningWorkoutBuilder,

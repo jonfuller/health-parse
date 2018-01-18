@@ -1,6 +1,5 @@
 ﻿namespace HealthParseFunctions
 {
-
     public static class Result
     {
         public static Result<T> Success<T>(T value)

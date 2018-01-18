@@ -7,7 +7,7 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class StepBuilder : ISheetBuilder<StepBuilder.StepItem>
     {
-        private Dictionary<string, IEnumerable<Record>> _records;
+        private readonly Dictionary<string, IEnumerable<Record>> _records;
 
         public StepBuilder(Dictionary<string, IEnumerable<Record>> records)
         {

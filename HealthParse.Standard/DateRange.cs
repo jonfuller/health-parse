@@ -10,8 +10,8 @@ namespace HealthParse.Standard
             End = end;
         }
 
-        public DateTime Start { get; private set; }
-        public DateTime End { get; private set; }
+        public DateTime Start { get; }
+        public DateTime End { get; }
 
         public bool Includes(DateTime value)
         {

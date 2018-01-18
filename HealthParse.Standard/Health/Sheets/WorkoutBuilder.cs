@@ -7,11 +7,11 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public abstract class WorkoutBuilder : ISheetBuilder<WorkoutBuilder.WorkoutItem>
     {
-        protected Dictionary<string, IEnumerable<Workout>> _workouts;
-        private Func<Workout, object> _selector;
-        private string _workoutKey;
+        private readonly Dictionary<string, IEnumerable<Workout>> _workouts;
+        private readonly Func<Workout, object> _selector;
+        private readonly string _workoutKey;
 
-        public WorkoutBuilder(Dictionary<string, IEnumerable<Workout>> workouts, string workoutKey, Func<Workout, object> selector)
+        protected WorkoutBuilder(Dictionary<string, IEnumerable<Workout>> workouts, string workoutKey, Func<Workout, object> selector)
         {
             _workouts = workouts;
             _selector = selector;

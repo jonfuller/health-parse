@@ -9,7 +9,7 @@ namespace HealthParse.Standard.Health
         {
             var justSteps = allTheSteps.OrderBy(r => r.StartDate).ToList();
 
-            for (int i = 0; i < justSteps.Count; i++)
+            for (var i = 0; i < justSteps.Count; i++)
             {
                 var current = justSteps[i];
                 var next = justSteps.Skip(i + 1).FirstOrDefault();
@@ -19,7 +19,7 @@ namespace HealthParse.Standard.Health
                 {
                     var keeper = new[] { current, next }
                         .First(l => l.Raw.Attribute("sourceName").Value.Contains("Watch"));
-                    var loser = new[] { current, next }.Where(x => x != keeper).Single();
+                    var loser = new[] { current, next }.Single(x => x != keeper);
 
                     justSteps.Remove(loser);
                     i--;

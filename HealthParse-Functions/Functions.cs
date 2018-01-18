@@ -120,7 +120,7 @@ namespace HealthParseFunctions
 
             var filename = EmailStorage.SaveEmailToStorage(reply.Value, outgoingContainer);
             outputQueue.Add(filename);
-            log.Info($"extracted data, enqueueing reply - {reply.Value.To.ToString()} - {filename}");
+            log.Info($"extracted data, enqueueing reply - {reply.Value.To} - {filename}");
         }
 
     }
@@ -138,7 +138,6 @@ namespace HealthParseFunctions
                 var storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
                 var blobClient = storageAccount.CreateCloudBlobClient();
                 var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
-                var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, outgoingContainer);
                 var emailConfig = Fn.EmailConfig.Load();
 
                 var email = EmailStorage.LoadEmailFromStorage(message.AsString, outgoingContainer);
@@ -149,7 +148,7 @@ namespace HealthParseFunctions
 
                 EmailStorage.DeleteEmailFromStorage(message.AsString, outgoingContainer);
 
-                log.Info($"sent mail to {email.To.ToString()} - {email.Subject}");
+                log.Info($"sent mail to {email.To} - {email.Subject}");
             }
         }
     }

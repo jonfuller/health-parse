@@ -15,7 +15,7 @@ namespace HealthParse.Standard
         }
         public static double SafeParse(this string target, double valueIfParseFail)
         {
-            var parsed = double.TryParse(target, out double result);
+            var parsed = double.TryParse(target, out var result);
             return parsed ? result : valueIfParseFail;
         }
 

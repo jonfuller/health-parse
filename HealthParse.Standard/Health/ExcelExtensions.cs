@@ -16,16 +16,17 @@ namespace HealthParse.Standard.Health
 
         private static IEnumerable<IEnumerable<string>> GetLines(IEnumerable<object> rows)
         {
-            if (!rows.Any())
+            var rowsList = rows.ToList();
+            if (!rowsList.Any())
             {
                 yield break;
             }
 
-            var first = rows.First();
+            var first = rowsList.First();
             var props = first.GetType().GetProperties();
 
             yield return props.Select(prop => prop.Name);
-            foreach (var row in rows)
+            foreach (var row in rowsList)
             {
                 yield return props.Select(prop => prop.GetValue(row)?.ToString());
             }
