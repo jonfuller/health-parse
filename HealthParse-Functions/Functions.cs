@@ -1,6 +1,4 @@
 using HealthParse.Mail;
-using HealthParse.Standard.Health;
-using HealthParse.Standard.Mail;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Net.Smtp;
@@ -9,9 +7,9 @@ using MailKit.Security;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
 using MimeKit;
-using System;
 using System.Linq;
 
 namespace HealthParseFunctions
@@ -57,12 +55,49 @@ namespace HealthParseFunctions
         }
     }
 
+    public static class ErrorNotification
+    {
+        [FunctionName("ErrorNotification")]
+        public static void Run(
+            [QueueTrigger(queueName: Fn.Qs.ErrorNotification, Connection = Fn.ConnectionKeyName)]CloudQueueMessage message,
+            [Queue(queueName: Fn.Qs.OutgoingMail, Connection = Fn.ConnectionKeyName)]ICollector<string> outgoingMail,
+            TraceWriter log)
+        {
+            var storageConfig = Fn.StorageConfig.Load();
+            var storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
+            var errorContainer = blobClient.GetContainerReference(storageConfig.ErrorMailContainerName);
+
+            var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, errorContainer);
+            log.Info($"Got error {originalEmail.Subject}... notifying... ");
+
+            NotifyByEmail(originalEmail, outgoingContainer, outgoingMail, log);
+
+            EmailStorage.DeleteEmailFromStorage(message.AsString, errorContainer);
+        }
+
+        private static void NotifyByEmail(MimeMessage originalMessage, CloudBlobContainer outgoingContainer, ICollector<string> outgoingMail, TraceWriter log)
+        {
+            var emailConfig = Fn.EmailConfig.Load();
+            log.Info($"... Notifying admin of error via email ({emailConfig.AdminEmailAddress})");
+
+            var forwarded = MailUtility.ForwardMessage(
+                originalMessage,
+                "Here's an error email.",
+                emailConfig.AdminEmailAddress,
+                emailConfig.FromEmailAddress);
+            outgoingMail.Add(EmailStorage.SaveEmailToStorage(forwarded, outgoingContainer));
+        }
+    }
+
     public static class DataExtraction
     {
         [FunctionName("ExtractData")]
         public static void Run(
             [QueueTrigger(queueName: Fn.Qs.IncomingMail, Connection = Fn.ConnectionKeyName)]CloudQueueMessage message,
             [Queue(queueName: Fn.Qs.OutgoingMail, Connection = Fn.ConnectionKeyName)]ICollector<string> outputQueue,
+            [Queue(queueName: Fn.Qs.ErrorNotification, Connection = Fn.ConnectionKeyName)]ICollector<string> errorQueue,
             TraceWriter log)
         {
             var storageConfig = Fn.StorageConfig.Load();
@@ -70,90 +105,24 @@ namespace HealthParseFunctions
             var blobClient = storageAccount.CreateCloudBlobClient();
             var incomingContainer = blobClient.GetContainerReference(storageConfig.IncomingMailContainerName);
             var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
+            var errorContainer = blobClient.GetContainerReference(storageConfig.ErrorMailContainerName);
             var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, incomingContainer);
 
-            var reply = ProcessEmail(originalEmail);
+            var reply = MailUtility.ProcessEmail(originalEmail, Fn.EmailConfig.Load().FromEmailAddress);
 
-            var filename = EmailStorage.SaveEmailToStorage(reply, outgoingContainer);
+            if (!reply.WasSuccessful)
+            {
+                var erroredFile = EmailStorage.SaveEmailToStorage(originalEmail, errorContainer);
+                errorQueue.Add(erroredFile);
+                log.Info($"enqueueing error - {erroredFile}");
+            }
+            EmailStorage.DeleteEmailFromStorage(message.AsString, incomingContainer);
+
+            var filename = EmailStorage.SaveEmailToStorage(reply.Value, outgoingContainer);
             outputQueue.Add(filename);
-            log.Info($"extracted data, enqueueing reply - {reply.To.ToString()} - {filename}");
+            log.Info($"extracted data, enqueueing reply - {reply.Value.To.ToString()} - {filename}");
         }
 
-        private static MimeMessage ProcessEmail(MimeMessage originalEmail)
-        {
-            var attachments = originalEmail.LoadAttachments();
-            var exportAttachment = attachments.FirstOrDefault(a => a.Item1 == "export.zip");
-
-            if (exportAttachment != null)
-            {
-                var attachment = ExcelReport.CreateReport(exportAttachment.Item2);
-                var attachmentName = $"export.{originalEmail.Date.Date.ToString("yyyy-mm-dd")}.xlsx";
-                return ConstructExcelReportMessage(originalEmail, attachment, attachmentName);
-            }
-
-            // TODO: what if no export.zip?
-            // TODO: other scenarios
-
-            return ConstructErrorMessage(originalEmail);
-        }
-
-        private static MimeMessage ConstructErrorMessage(MimeMessage originalEmail)
-        {
-            return ConstructReply(originalEmail, builder =>
-            {
-                builder.TextBody = @"Something went wrong... sorry about that!";
-            });
-        }
-        private static MimeMessage ConstructExcelReportMessage(MimeMessage message, byte[] attachment, string attachmentName)
-        {
-            return ConstructReply(message, builder =>
-            {
-                builder.TextBody = @"Hey there, I saw your health data... good work!";
-                builder.Attachments.Add(attachmentName, attachment);
-            });
-        }
-
-        private static MimeMessage ConstructReply(MimeMessage message, Action<BodyBuilder> builderAction)
-        {
-            var reply = new MimeMessage();
-
-            reply.From.Add(new MailboxAddress("applehealthreport@gmail.com"));
-
-            // reply to the sender of the message
-            if (message.ReplyTo.Count > 0)
-            {
-                reply.To.AddRange(message.ReplyTo);
-            }
-            else if (message.From.Count > 0)
-            {
-                reply.To.AddRange(message.From);
-            }
-            else if (message.Sender != null)
-            {
-                reply.To.Add(message.Sender);
-            }
-
-            if (!message.Subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase))
-                reply.Subject = "Re: " + message.Subject;
-            else
-                reply.Subject = message.Subject;
-
-            // construct the In-Reply-To and References headers
-            if (!string.IsNullOrEmpty(message.MessageId))
-            {
-                reply.InReplyTo = message.MessageId;
-                foreach (var id in message.References)
-                    reply.References.Add(id);
-                reply.References.Add(message.MessageId);
-            }
-
-            var builder = new BodyBuilder();
-            builderAction(builder);
-
-            reply.Body = builder.ToMessageBody();
-
-            return reply;
-        }
     }
 
     public static class SendMail
@@ -177,6 +146,9 @@ namespace HealthParseFunctions
                 client.Authenticate(emailConfig.Username, emailConfig.Password);
                 client.Send(email);
                 client.Disconnect(true);
+
+                EmailStorage.DeleteEmailFromStorage(message.AsString, outgoingContainer);
+
                 log.Info($"sent mail to {email.To.ToString()} - {email.Subject}");
             }
         }
