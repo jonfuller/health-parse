@@ -38,7 +38,8 @@ namespace HealthParse.Standard.Health.Sheets
         {
             return _workouts[_workoutKey]
                 .Where(x => dateRange.Includes(x.StartDate))
-                .Select(x => new WorkoutItem(x.StartDate.Date, x.TotalDistance ?? 0, x.Duration ?? 0))
+                .GroupBy(x => x.StartDate.Date)
+                .Select(x => new WorkoutItem(x.Key, x.Sum(c => c.TotalDistance) ?? 0, x.Sum(c => c.Duration) ?? 0))
                 .OrderByDescending(x => x.Date);
         }
 

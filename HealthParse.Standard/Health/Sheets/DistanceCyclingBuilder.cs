@@ -38,7 +38,8 @@ namespace HealthParse.Standard.Health.Sheets
         {
             return _records[HKConstants.Records.DistanceCycling]
                 .Where(x => dateRange.Includes(x.StartDate))
-                .Select(x => new CyclingItem(x.StartDate.Date, x.Raw.Attribute("value").ValueDouble(0) ?? 0))
+                .GroupBy(x => x.StartDate.Date)
+                .Select(x => new CyclingItem(x.Key, x.Sum(c => c.Raw.Attribute("value").ValueDouble(0) ?? 0)))
                 .OrderBy(x => x.Date);
         }
 
