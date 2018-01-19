@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -15,9 +14,9 @@ namespace HealthParse.Standard.Health.Sheets
                 ? records[HKConstants.Records.DistanceCycling]
                 : Enumerable.Empty<Record>();
         }
-        void ISheetBuilder.Build(ExcelWorksheet sheet)
+        IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
-            var cycling = _records
+            return _records
                 .OrderByDescending(r => r.StartDate)
                 .Select(r => new
                 {
@@ -25,8 +24,6 @@ namespace HealthParse.Standard.Health.Sheets
                     distance = r.Raw.Attribute("value").Value,
                     unit = r.Raw.Attribute("unit").Value
                 });
-
-            sheet.WriteData(cycling);
         }
 
         IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummary()

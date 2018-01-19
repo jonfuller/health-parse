@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -40,7 +40,7 @@ namespace HealthParse.Standard.Health.Sheets
             _bodyFatBuilder = bodyFatBuilder;
         }
 
-        void ISheetBuilder.Build(ExcelWorksheet sheet)
+        IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
             var monthDays = Enumerable.Range(1, DateTime.DaysInMonth(_targetYear, _targetMonth))
                 .Select(d => new DateTime(_targetYear, _targetMonth, d))
@@ -91,7 +91,7 @@ namespace HealthParse.Standard.Health.Sheets
                     walkingDuration = walking?.Duration,
                 };
 
-            sheet.WriteData(data);
+            return data;
         }
     }
 }

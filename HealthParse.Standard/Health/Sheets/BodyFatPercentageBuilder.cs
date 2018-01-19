@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -15,13 +14,11 @@ namespace HealthParse.Standard.Health.Sheets
                 ? records[HKConstants.Records.BodyFatPercentage]
                 : Enumerable.Empty<Record>();
         }
-        void ISheetBuilder.Build(ExcelWorksheet sheet)
+        IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
-            var massRecords = _records
+            return _records
                 .Select(r => new { Date = r.StartDate, BodyFatPct = r.Value.SafeParse(0) })
                 .OrderByDescending(r => r.Date);
-
-            sheet.WriteData(massRecords);
         }
 
         IEnumerable<BodyFatItem> ISheetBuilder<BodyFatItem>.BuildSummary()

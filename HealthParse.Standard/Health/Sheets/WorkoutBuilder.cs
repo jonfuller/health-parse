@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -18,13 +17,11 @@ namespace HealthParse.Standard.Health.Sheets
             _selector = selector;
         }
 
-        void ISheetBuilder.Build(ExcelWorksheet sheet)
+        IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
-            var workouts = _workouts
+            return _workouts
                  .OrderByDescending(r => r.StartDate)
                  .Select(_selector);
-
-            sheet.WriteData(workouts);
         }
 
         IEnumerable<WorkoutItem> ISheetBuilder<WorkoutItem>.BuildSummary()

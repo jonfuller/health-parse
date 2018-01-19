@@ -1,5 +1,4 @@
-﻿using OfficeOpenXml;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,9 +15,9 @@ namespace HealthParse.Standard.Health.Sheets
                 : Enumerable.Empty<Record>();
         }
 
-        void ISheetBuilder.Build(ExcelWorksheet sheet)
+        IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
-            sheet.WriteData(GetStepsByDay());
+            return GetStepsByDay();
         }
 
         IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummary()

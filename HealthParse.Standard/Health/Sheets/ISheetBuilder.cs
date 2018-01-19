@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
     public interface ISheetBuilder
     {
-        void Build(ExcelWorksheet sheet);
+        IEnumerable<object> BuildRawSheet();
     }
     public interface ISheetBuilder<TItem> : ISheetBuilder where TItem : DatedItem
     {

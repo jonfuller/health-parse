@@ -94,8 +94,12 @@ namespace HealthParse.Standard.Health
 
             sheetBuilders.ToList().ForEach(s =>
             {
-                var sheet = workbook.Worksheets.Add(s.sheetName);
-                s.builder.Build(sheet);
+                var sheetData = s.builder.BuildRawSheet().ToList();
+                if (sheetData.Any())
+                {
+                    var sheet = workbook.Worksheets.Add(s.sheetName);
+                    sheet.WriteData(sheetData);
+                }
             });
         }
     }
