@@ -7,15 +7,17 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class BodyFatPercentageBuilder : ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem>
     {
-        private readonly Dictionary<string, IEnumerable<Record>> _records;
+        private readonly IEnumerable<Record> _records;
 
-        public BodyFatPercentageBuilder(Dictionary<string, IEnumerable<Record>> records)
+        public BodyFatPercentageBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records)
         {
-            _records = records;
+            _records = records.ContainsKey(HKConstants.Records.BodyFatPercentage)
+                ? records[HKConstants.Records.BodyFatPercentage]
+                : Enumerable.Empty<Record>();
         }
         void ISheetBuilder.Build(ExcelWorksheet sheet)
         {
-            var massRecords = _records[HKConstants.Records.BodyFatPercentage]
+            var massRecords = _records
                 .Select(r => new { Date = r.StartDate, BodyFatPct = r.Value.SafeParse(0) })
                 .OrderByDescending(r => r.Date);
 
@@ -24,7 +26,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<BodyFatItem> ISheetBuilder<BodyFatItem>.BuildSummary()
         {
-            return _records[HKConstants.Records.BodyFatPercentage]
+            return _records
                 .GroupBy(r => r.StartDate.Date)
                 .Select(g => new { date = g.Key, bodyFat = g.Min(x => x.Value.SafeParse(0)) })
                 .GroupBy(s => new { s.date.Year, s.date.Month })
@@ -33,7 +35,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<BodyFatItem> ISheetBuilder<BodyFatItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
-            return _records[HKConstants.Records.BodyFatPercentage]
+            return _records
                 .Where(r => dateRange.Includes(r.StartDate))
                 .GroupBy(r => r.StartDate.Date)
                 .Select(g => new { date = g.Key, bodyFat = g.Min(x => x.Value.SafeParse(0)) })

@@ -4,7 +4,7 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class WalkingWorkoutBuilder : WorkoutBuilder
     {
-        public WalkingWorkoutBuilder(Dictionary<string, IEnumerable<Workout>> workouts)
+        public WalkingWorkoutBuilder(IReadOnlyDictionary<string, IEnumerable<Workout>> workouts)
             : base(workouts, HKConstants.Workouts.Walking, r => new
             {
                 date = r.StartDate,

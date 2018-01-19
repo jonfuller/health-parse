@@ -7,15 +7,17 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class MassBuilder : ISheetBuilder<MassBuilder.MassItem>
     {
-        private readonly Dictionary<string, IEnumerable<Record>> _records;
+        private readonly IEnumerable<Record> _records;
 
-        public MassBuilder(Dictionary<string, IEnumerable<Record>> records)
+        public MassBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records)
         {
-            _records = records;
+            _records = records.ContainsKey(HKConstants.Records.BodyMass)
+                ? records[HKConstants.Records.BodyMass]
+                : Enumerable.Empty<Record>();
         }
         void ISheetBuilder.Build(ExcelWorksheet sheet)
         {
-            var massRecords = _records[HKConstants.Records.BodyMass]
+            var massRecords = _records
                 .Select(r => new {Date = r.StartDate, Mass = Extensions.SafeParse(r.Value, 0) })
                 .OrderByDescending(r => r.Date);
 
@@ -24,7 +26,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<MassItem> ISheetBuilder<MassItem>.BuildSummary()
         {
-            return _records[HKConstants.Records.BodyMass]
+            return _records
                 .GroupBy(r => r.StartDate.Date)
                 .Select(g => new{date = g.Key, mass = g.Min(x => x.Value.SafeParse(0))})
                 .GroupBy(s => new { s.date.Year, s.date.Month })
@@ -33,7 +35,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<MassItem> ISheetBuilder<MassItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
-            return _records[HKConstants.Records.BodyMass]
+            return _records
                 .Where(r => dateRange.Includes(r.StartDate))
                 .GroupBy(r => r.StartDate.Date)
                 .Select(g => new { date = g.Key, mass = g.Min(x => x.Value.SafeParse(0)) })

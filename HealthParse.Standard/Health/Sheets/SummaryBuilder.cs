@@ -6,8 +6,8 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class SummaryBuilder : ISheetBuilder
     {
-        private readonly Dictionary<string, IEnumerable<Record>> _records;
-        private readonly Dictionary<string, IEnumerable<Workout>> _workouts;
+        private readonly IReadOnlyDictionary<string, IEnumerable<Record>> _records;
+        private readonly IReadOnlyDictionary<string, IEnumerable<Workout>> _workouts;
         private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
@@ -17,8 +17,8 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
         private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
 
-        public SummaryBuilder(Dictionary<string, IEnumerable<Record>> records,
-            Dictionary<string, IEnumerable<Workout>> workouts,
+        public SummaryBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records,
+            IReadOnlyDictionary<string, IEnumerable<Workout>> workouts,
             ISheetBuilder<StepBuilder.StepItem> stepBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,

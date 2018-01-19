@@ -7,11 +7,13 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class StepBuilder : ISheetBuilder<StepBuilder.StepItem>
     {
-        private readonly Dictionary<string, IEnumerable<Record>> _records;
+        private readonly IEnumerable<Record> _records;
 
-        public StepBuilder(Dictionary<string, IEnumerable<Record>> records)
+        public StepBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records)
         {
-            _records = records;
+            _records = records.ContainsKey(HKConstants.Records.StepCount)
+                ? records[HKConstants.Records.StepCount]
+                : Enumerable.Empty<Record>();
         }
 
         void ISheetBuilder.Build(ExcelWorksheet sheet)
@@ -33,7 +35,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         private IEnumerable<StepItem> GetStepsByDay()
         {
-            return StepHelper.PrioritizeSteps(_records[HKConstants.Records.StepCount])
+            return StepHelper.PrioritizeSteps(_records)
                 .GroupBy(s => s.StartDate.Date)
                 .Select(x => new StepItem(x.Key, (int)x.Sum(r => r.Value.SafeParse(0))))
                 .OrderByDescending(s => s.Date);

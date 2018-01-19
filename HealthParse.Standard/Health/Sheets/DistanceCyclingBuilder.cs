@@ -7,15 +7,17 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class DistanceCyclingBuilder : ISheetBuilder<DistanceCyclingBuilder.CyclingItem>
     {
-        private readonly Dictionary<string, IEnumerable<Record>> _records;
+        private readonly IEnumerable<Record> _records;
 
-        public DistanceCyclingBuilder(Dictionary<string, IEnumerable<Record>> records)
+        public DistanceCyclingBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records)
         {
-            _records = records;
+            _records = records.ContainsKey(HKConstants.Records.DistanceCycling)
+                ? records[HKConstants.Records.DistanceCycling]
+                : Enumerable.Empty<Record>();
         }
         void ISheetBuilder.Build(ExcelWorksheet sheet)
         {
-            var cycling = _records[HKConstants.Records.DistanceCycling]
+            var cycling = _records
                 .OrderByDescending(r => r.StartDate)
                 .Select(r => new
                 {
@@ -29,14 +31,14 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummary()
         {
-            return _records[HKConstants.Records.DistanceCycling]
+            return _records
                 .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
                 .Select(x => new CyclingItem(x.Key.Year, x.Key.Month, x.Sum(c => c.Raw.Attribute("value").ValueDouble(0) ?? 0)));
         }
 
         IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
-            return _records[HKConstants.Records.DistanceCycling]
+            return _records
                 .Where(x => dateRange.Includes(x.StartDate))
                 .GroupBy(x => x.StartDate.Date)
                 .Select(x => new CyclingItem(x.Key, x.Sum(c => c.Raw.Attribute("value").ValueDouble(0) ?? 0)))
