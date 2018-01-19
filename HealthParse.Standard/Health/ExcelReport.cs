@@ -52,6 +52,8 @@ namespace HealthParse.Standard.Health
             var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts);
             var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts);
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records);
+            var massBuilder = new MassBuilder(records);
+            var bodyFatBuilder = new BodyFatPercentageBuilder(records);
 
             var summaryBuilder = new SummaryBuilder(records, workouts,
                 stepBuilder,
@@ -59,7 +61,9 @@ namespace HealthParse.Standard.Health
                 runningWorkoutBuilder,
                 walkingWorkoutBuilder,
                 strengthTrainingBuilder,
-                distanceCyclingBuilder);
+                distanceCyclingBuilder,
+                massBuilder,
+                bodyFatBuilder);
 
             var monthBuilders = Enumerable.Range(0, 3)
                 .Select(i => DateTime.Today.AddMonths(-i))
@@ -72,13 +76,16 @@ namespace HealthParse.Standard.Health
                         runningWorkoutBuilder,
                         walkingWorkoutBuilder,
                         strengthTrainingBuilder,
-                        distanceCyclingBuilder),
+                        distanceCyclingBuilder,
+                        massBuilder, bodyFatBuilder),
                     sheetName = $"Month Summary - {m.Year} - {m.Month}",
                 });
 
             var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = "Overall Summary"} }
                 .Concat(monthBuilders)
                 .Concat(new { builder = (ISheetBuilder)stepBuilder, sheetName = "Steps" })
+                .Concat(new { builder = (ISheetBuilder)massBuilder, sheetName = "Mass (Weight)" })
+                .Concat(new { builder = (ISheetBuilder)bodyFatBuilder, sheetName = "Body Fat %" })
                 .Concat(new { builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)" })
                 .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)" })
                 .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training" })

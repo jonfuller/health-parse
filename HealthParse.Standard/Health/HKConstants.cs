@@ -5,8 +5,10 @@
         public static class Records
         {
             public const string BodyMass = "HKQuantityTypeIdentifierBodyMass";
+            public const string BodyFatPercentage = "HKQuantityTypeIdentifierBodyFatPercentage";
             public const string StepCount = "HKQuantityTypeIdentifierStepCount";
             public const string DistanceCycling = "HKQuantityTypeIdentifierDistanceCycling";
+
         }
 
         public static class Workouts

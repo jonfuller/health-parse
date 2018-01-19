@@ -14,6 +14,8 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _walkingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _strengthBuilder;
         private readonly ISheetBuilder<DistanceCyclingBuilder.CyclingItem> _distanceCyclingBuilder;
+        private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
+        private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
 
         public MonthSummaryBuilder(int targetYear, int targetMonth,
             ISheetBuilder<StepBuilder.StepItem> stepBuilder,
@@ -21,8 +23,9 @@ namespace HealthParse.Standard.Health.Sheets
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> walkingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> strengthBuilder,
-            ISheetBuilder<DistanceCyclingBuilder.CyclingItem> distanceCyclingBuilder
-        )
+            ISheetBuilder<DistanceCyclingBuilder.CyclingItem> distanceCyclingBuilder,
+            ISheetBuilder<MassBuilder.MassItem> massBuilder,
+            ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> bodyFatBuilder)
         {
             _targetYear = targetYear;
             _targetMonth = targetMonth;
@@ -33,6 +36,8 @@ namespace HealthParse.Standard.Health.Sheets
             _walkingBuilder = walkingBuilder;
             _strengthBuilder = strengthBuilder;
             _distanceCyclingBuilder = distanceCyclingBuilder;
+            _massBuilder = massBuilder;
+            _bodyFatBuilder = bodyFatBuilder;
         }
 
         void ISheetBuilder.Build(ExcelWorksheet sheet)
@@ -49,6 +54,8 @@ namespace HealthParse.Standard.Health.Sheets
             var stregthTrainings = _strengthBuilder.BuildSummaryForDateRange(range);
             var runnings = _runningBuilder.BuildSummaryForDateRange(range);
             var walkings = _walkingBuilder.BuildSummaryForDateRange(range);
+            var masses = _massBuilder.BuildSummaryForDateRange(range);
+            var bodyFats = _bodyFatBuilder.BuildSummaryForDateRange(range);
 
             var data = from day in monthDays
                 join step in stepsData on day equals step.Date into tmpSteps
@@ -57,17 +64,23 @@ namespace HealthParse.Standard.Health.Sheets
                 join strength in stregthTrainings on day equals strength.Date into tmpStrength
                 join running in runnings on day equals running.Date into tmpRunning
                 join walking in walkings on day equals walking.Date into tmpWalking
+                join mass in masses on day equals mass.Date into tmpMasses
+                join bodyFat in bodyFats on day equals bodyFat.Date into tmpBodyFats
                 from step in tmpSteps.DefaultIfEmpty()
                 from wCycling in tmpWCycling.DefaultIfEmpty()
                 from rCycling in tmpRCycling.DefaultIfEmpty()
                 from strength in tmpStrength.DefaultIfEmpty()
                 from running in tmpRunning.DefaultIfEmpty()
                 from walking in tmpWalking.DefaultIfEmpty()
+                from mass in tmpMasses.DefaultIfEmpty()
+                from bodyFat in tmpBodyFats.DefaultIfEmpty()
                 orderby day descending
                 select new
                 {
                     day,
                     step?.Steps,
+                    mass?.Mass,
+                    bodyFat?.BodyFatPercentage,
                     cyclingWorkoutDistance = wCycling?.Distance,
                     cyclingWorkoutMinutes = wCycling?.Duration,
                     distanceCyclingDistance = rCycling?.Distance,
