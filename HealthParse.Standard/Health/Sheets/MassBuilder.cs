@@ -33,7 +33,7 @@ namespace HealthParse.Standard.Health.Sheets
         IEnumerable<MassItem> ISheetBuilder<MassItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
             return _records
-                .Where(r => dateRange.Includes(r.StartDate))
+                .Where(r => dateRange.Includes(r.StartDate, Clusivity.Inclusive))
                 .GroupBy(r => r.StartDate.Date)
                 .Select(g => new { date = g.Key, mass = g.Min(x => x.Value.SafeParse(0)) })
                 .Select(x => new MassItem(x.date, x.mass));

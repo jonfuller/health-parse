@@ -36,7 +36,7 @@ namespace HealthParse.Standard.Health.Sheets
         IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
             return _records
-                .Where(x => dateRange.Includes(x.StartDate))
+                .Where(x => dateRange.Includes(x.StartDate, Clusivity.Inclusive))
                 .GroupBy(x => x.StartDate.Date)
                 .Select(x => new CyclingItem(x.Key, x.Sum(c => c.Raw.Attribute("value").ValueDouble(0) ?? 0)))
                 .OrderBy(x => x.Date);

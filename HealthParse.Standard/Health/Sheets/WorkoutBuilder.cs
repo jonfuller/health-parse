@@ -34,7 +34,7 @@ namespace HealthParse.Standard.Health.Sheets
         IEnumerable<WorkoutItem> ISheetBuilder<WorkoutItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
             return _workouts
-                .Where(x => dateRange.Includes(x.StartDate))
+                .Where(x => dateRange.Includes(x.StartDate, Clusivity.Inclusive))
                 .GroupBy(x => x.StartDate.Date)
                 .Select(x => new WorkoutItem(x.Key, x.Sum(c => c.TotalDistance) ?? 0, x.Sum(c => c.Duration) ?? 0))
                 .OrderByDescending(x => x.Date);

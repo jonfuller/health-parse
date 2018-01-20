@@ -33,7 +33,7 @@ namespace HealthParse.Standard.Health.Sheets
         IEnumerable<BodyFatItem> ISheetBuilder<BodyFatItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
             return _records
-                .Where(r => dateRange.Includes(r.StartDate))
+                .Where(r => dateRange.Includes(r.StartDate, Clusivity.Inclusive))
                 .GroupBy(r => r.StartDate.Date)
                 .Select(g => new { date = g.Key, bodyFat = g.Min(x => x.Value.SafeParse(0)) })
                 .Select(x => new BodyFatItem(x.date, x.bodyFat));

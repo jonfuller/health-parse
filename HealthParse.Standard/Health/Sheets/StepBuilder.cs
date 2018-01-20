@@ -29,7 +29,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
         {
-            return GetStepsByDay().Where(x => dateRange.Includes(x.Date));
+            return GetStepsByDay().Where(x => dateRange.Includes(x.Date, Clusivity.Inclusive));
         }
 
         private IEnumerable<StepItem> GetStepsByDay()
