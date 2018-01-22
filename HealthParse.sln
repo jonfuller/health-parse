@@ -1,14 +1,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HealthParse", "HealthParse\HealthParse.csproj", "{97BF9353-39FE-443F-B434-01C1B95D9B75}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mailin", "Mailin\Mailin.csproj", "{B9D54A0E-8E98-4129-9661-5FBABB0230E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HealthParse-Functions", "HealthParse-Functions\HealthParse-Functions.csproj", "{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthParse-Functions", "HealthParse-Functions\HealthParse-Functions.csproj", "{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthParse.Standard", "HealthParse.Standard\HealthParse.Standard.csproj", "{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HealthParse.Standard", "HealthParse.Standard\HealthParse.Standard.csproj", "{62596C42-61F0-44CC-BCCF-E8DEFC3F3B8E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,10 +18,6 @@ Global
 		{97BF9353-39FE-443F-B434-01C1B95D9B75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97BF9353-39FE-443F-B434-01C1B95D9B75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97BF9353-39FE-443F-B434-01C1B95D9B75}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B9D54A0E-8E98-4129-9661-5FBABB0230E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B9D54A0E-8E98-4129-9661-5FBABB0230E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B9D54A0E-8E98-4129-9661-5FBABB0230E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B9D54A0E-8E98-4129-9661-5FBABB0230E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C87A004-F3C6-421F-85D8-3E3D3A32B0CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
