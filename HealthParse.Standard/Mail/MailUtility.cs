@@ -1,11 +1,9 @@
-﻿using HealthParse.Standard.Health;
-using HealthParse.Standard.Mail;
-using MimeKit;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
+using HealthParse.Standard.Mail.Processors;
+using MimeKit;
 
-namespace HealthParseFunctions
+namespace HealthParse.Standard.Mail
 {
     public static class MailUtility
     {
@@ -16,30 +14,22 @@ namespace HealthParseFunctions
                 builder.TextBody = text;
             });
         }
-        public static MimeMessage ProcessAppleHealthExportEmail(MimeMessage originalEmail, IEnumerable<Tuple<string, byte[]>> attachments, string from)
-        {
-            var exportAttachment = attachments.Single(a => a.Item1 == "export.zip");
-
-            var attachment = ExcelReport.CreateReport(exportAttachment.Item2);
-            var attachmentName = $"export.{originalEmail.Date.Date:yyyy-mm-dd}.xlsx";
-
-            return ConstructReply(originalEmail, new MailboxAddress(from), builder =>
-            {
-                builder.TextBody = @"Hey there, I saw your health data... good work!";
-                builder.Attachments.Add(attachmentName, attachment);
-            });
-        }
 
         public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from)
         {
             var attachments = originalEmail.LoadAttachments().ToList();
+            var handlers = new IMailProcessor[]
+            {
+                new AppleHealthAttachmentMailProcessor(from),
+                new SettingsUpdateMailProcessor(from),
+                new HelpMailProcessor(from),
+            };
 
             try
             {
-                if (attachments.Any(a => a.Item1 == "export.zip"))
-                {
-                    return Result.Success(ProcessAppleHealthExportEmail(originalEmail, attachments, from));
-                }
+                handlers
+                    .First(h => h.CanHandle(originalEmail, attachments))
+                    .Process(originalEmail, attachments);
             }
             catch (Exception e)
             {
@@ -81,7 +71,7 @@ namespace HealthParseFunctions
             return message;
         }
 
-        private static MimeMessage ConstructReply(MimeMessage message, MailboxAddress from, Action<BodyBuilder> builderAction)
+        public static MimeMessage ConstructReply(MimeMessage message, MailboxAddress from, Action<BodyBuilder> builderAction)
         {
             var reply = new MimeMessage();
 

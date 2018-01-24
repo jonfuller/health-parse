@@ -1,4 +1,4 @@
-﻿namespace HealthParseFunctions
+﻿namespace HealthParse.Standard
 {
     public static class Result
     {
