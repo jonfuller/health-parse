@@ -15,7 +15,7 @@ namespace HealthParse
     {
         [FunctionName("ReceiveMail")]
         public static void Run(
-            [TimerTrigger("0 */5 * * * *")]TimerInfo timer,
+            [TimerTrigger("0 */1 * * * *")]TimerInfo timer,
             [Queue(queueName: Fn.Qs.IncomingMail, Connection = Fn.ConnectionKeyName)]ICollector<string> outputQueue,
             TraceWriter log)
         {
