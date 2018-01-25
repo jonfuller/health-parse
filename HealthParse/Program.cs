@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using HealthParse.Standard.Health;
+using HealthParse.Standard.Mail.Processors;
+using HealthParse.Standard.Settings;
 using OfficeOpenXml;
 
 namespace HealthParse
@@ -22,12 +24,15 @@ namespace HealthParse
                     entry => XDocument.Load(entry.Open()))
                 .FirstOrDefault();
             }
+
+            var settingsStore = new SettingsStore();
+            var settings = settingsStore.GetCurrentSettings("abc");
             var filename = @"c:\users\jcfuller\Desktop\export.xlsx";
             using (var excelFile = new ExcelPackage())
             using (var filestream = new FileStream(filename, FileMode.Create))
             {
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                ExcelReport.BuildReport(export, excelFile.Workbook);
+                ExcelReport.BuildReport(export, excelFile.Workbook, settings);
                 excelFile.SaveAs(filestream);
             }
             //workouts[HKConstants.Workouts.Strength]

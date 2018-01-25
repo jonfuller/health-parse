@@ -9,7 +9,7 @@ namespace HealthParse.Standard.Health
 {
     public static class ExcelReport
     {
-        public static byte[] CreateReport(byte[] exportZip)
+        public static byte[] CreateReport(byte[] exportZip, Settings.Settings settings)
         {
             using (var inputStream = new MemoryStream(exportZip))
             using (var outputStream = new MemoryStream())
@@ -17,7 +17,7 @@ namespace HealthParse.Standard.Health
             {
                 var export = LoadExportXml(inputStream);
 
-                BuildReport(export, excelFile.Workbook);
+                BuildReport(export, excelFile.Workbook, settings);
 
                 excelFile.SaveAs(outputStream);
 
@@ -34,7 +34,7 @@ namespace HealthParse.Standard.Health
             .FirstOrDefault();
         }
 
-        public static void BuildReport(XDocument export, ExcelWorkbook workbook)
+        public static void BuildReport(XDocument export, ExcelWorkbook workbook, Settings.Settings settings)
         {
             var records = export.Descendants("Record")
                 .Select(Record.FromXElement)
@@ -54,6 +54,7 @@ namespace HealthParse.Standard.Health
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records);
             var massBuilder = new MassBuilder(records);
             var bodyFatBuilder = new BodyFatPercentageBuilder(records);
+            var settingsBuilder = new SettingsSheetBuilder(settings);
 
             var summaryBuilder = new SummaryBuilder(records, workouts,
                 stepBuilder,
@@ -90,7 +91,8 @@ namespace HealthParse.Standard.Health
                 .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)" })
                 .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training" })
                 .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running" })
-                .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking" });
+                .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking" })
+                .Concat(new { builder = (ISheetBuilder)settingsBuilder, sheetName = "Settings"});
 
             sheetBuilders.ToList().ForEach(s =>
             {

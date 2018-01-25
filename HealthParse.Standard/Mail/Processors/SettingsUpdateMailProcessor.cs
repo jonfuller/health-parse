@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using HealthParse.Standard.Settings;
 using MimeKit;
 using OfficeOpenXml;
 
@@ -11,10 +12,12 @@ namespace HealthParse.Standard.Mail.Processors
     public class SettingsUpdateMailProcessor : IMailProcessor
     {
         private readonly string _from;
+        private readonly ISettingsStore _settingsStore;
 
-        public SettingsUpdateMailProcessor(string from)
+        public SettingsUpdateMailProcessor(string from, ISettingsStore settingsStore)
         {
             _from = @from;
+            _settingsStore = settingsStore;
         }
 
         public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<Tuple<string, byte[]>> attachments)
@@ -32,6 +35,8 @@ namespace HealthParse.Standard.Mail.Processors
                 {
                     return Result.Success(ConstructSettingsUpdateErrorMessage(originalEmail));
                 }
+
+                _settingsStore.UpdateSettings(settingsSheet, originalEmail.From.Mailboxes.First().HashedEmail());
 
                 return Result.Success(MailUtility.ConstructReply(originalEmail, new MailboxAddress(_from), builder =>
                 {

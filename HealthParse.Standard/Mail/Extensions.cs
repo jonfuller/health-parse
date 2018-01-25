@@ -3,12 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace HealthParse.Standard.Mail
 {
     public static class Extensions
     {
+        public static string HashedEmail(this MailboxAddress address)
+        {
+            return Convert.ToBase64String(SHA1.Create().ComputeHash(Encoding.Default.GetBytes(address.Address)));
+        }
+
         public static IEnumerable<Tuple<string, byte[]>> LoadAttachments(this MimeMessage message)
         {
             return message.Attachments

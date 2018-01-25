@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using HealthParse.Standard.Mail.Processors;
+using HealthParse.Standard.Settings;
 using MimeKit;
 
 namespace HealthParse.Standard.Mail
@@ -17,13 +18,13 @@ namespace HealthParse.Standard.Mail
             });
         }
 
-        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from)
+        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, Settings.Settings settings)
         {
             var attachments = originalEmail.LoadAttachments().ToList();
             var handlers = new IMailProcessor[]
             {
-                new AppleHealthAttachmentMailProcessor(from),
-                new SettingsUpdateMailProcessor(from),
+                new AppleHealthAttachmentMailProcessor(from, settings),
+                new SettingsUpdateMailProcessor(from, new SettingsStore()),
                 new HelpMailProcessor(from), // <-- catch all
             };
 

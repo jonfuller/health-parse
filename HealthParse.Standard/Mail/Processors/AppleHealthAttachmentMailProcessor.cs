@@ -9,16 +9,18 @@ namespace HealthParse.Standard.Mail.Processors
     public class AppleHealthAttachmentMailProcessor : IMailProcessor
     {
         private readonly string _from;
+        private readonly Settings.Settings _settings;
 
-        public AppleHealthAttachmentMailProcessor(string from)
+        public AppleHealthAttachmentMailProcessor(string from, Settings.Settings settings)
         {
             _from = @from;
+            _settings = settings;
         }
         public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<Tuple<string, byte[]>> attachments)
         {
             var exportAttachment = attachments.Single(a => a.Item1 == "export.zip");
 
-            var attachment = ExcelReport.CreateReport(exportAttachment.Item2);
+            var attachment = ExcelReport.CreateReport(exportAttachment.Item2, _settings);
             var attachmentName = $"export.{originalEmail.Date.Date:yyyy-mm-dd}.xlsx";
 
             var reply = MailUtility.ConstructReply(originalEmail, new MailboxAddress(_from), builder =>
