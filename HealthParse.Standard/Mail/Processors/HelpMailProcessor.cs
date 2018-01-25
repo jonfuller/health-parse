@@ -23,7 +23,7 @@ namespace HealthParse.Standard.Mail.Processors
             {
                 builder.TextBody = $@"It looks like you might not know what you're doing.
 
-Here's a link to some help: https://docs.google.com/document/d/1o3N199npwOfPKSN_CymXELOJJ-7ACZpEkgSLkL1ibxI/edit?usp=sharing
+Here's a link to some help: {MailUtility.HelpDocUrl}
 ";
             }));
         }

@@ -7,6 +7,8 @@ namespace HealthParse.Standard.Mail
 {
     public static class MailUtility
     {
+        public const string HelpDocUrl = "https://docs.google.com/document/d/1o3N199npwOfPKSN_CymXELOJJ-7ACZpEkgSLkL1ibxI/edit?usp=sharing";
+
         public static MimeMessage ForwardMessage(MimeMessage original, string text, string to, string from)
         {
             return ConstructForward(original, new MailboxAddress(from), new MailboxAddress(to), builder =>
@@ -22,12 +24,12 @@ namespace HealthParse.Standard.Mail
             {
                 new AppleHealthAttachmentMailProcessor(from),
                 new SettingsUpdateMailProcessor(from),
-                new HelpMailProcessor(from),
+                new HelpMailProcessor(from), // <-- catch all
             };
 
             try
             {
-                handlers
+                return handlers
                     .First(h => h.CanHandle(originalEmail, attachments))
                     .Process(originalEmail, attachments);
             }
@@ -35,8 +37,6 @@ namespace HealthParse.Standard.Mail
             {
                 return Result.Failure(ConstructErrorMessage(originalEmail, from, e));
             }
-
-            return Result.Failure(ConstructErrorMessage(originalEmail, from));
         }
 
         public static MimeMessage ConstructErrorMessage(MimeMessage originalEmail, string from)
