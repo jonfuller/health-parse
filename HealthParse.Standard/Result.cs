@@ -1,4 +1,6 @@
-﻿namespace HealthParse.Standard
+﻿using System;
+
+namespace HealthParse.Standard
 {
     public static class Result
     {
@@ -7,15 +9,16 @@
             return new Result<T>(value, true);
         }
 
-        public static Result<T> Failure<T>(T value)
+        public static Result<T> Failure<T>(T value, Exception exception = null)
         {
-            return new Result<T>(value, false);
+            return new Result<T>(value, false){Exception = exception};
         }
     }
     public class Result<T>
     {
         public T Value { get; }
         public bool WasSuccessful { get; }
+        public Exception Exception { get; set; }
 
 
         public Result(T value, bool wasSuccessful)

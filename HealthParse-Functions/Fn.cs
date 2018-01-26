@@ -17,6 +17,7 @@ namespace HealthParseFunctions
         {
             public string IncomingMailContainerName { get; private set; }
             public string OutgoingMailContainerName { get; private set; }
+            public string SettingsContainerName { get; private set; }
             public string ErrorMailContainerName { get; private set; }
             public string ConnectionString { get; private set; }
 
@@ -26,6 +27,7 @@ namespace HealthParseFunctions
                 {
                     IncomingMailContainerName = Environment.GetEnvironmentVariable("StorageBlob_IncomingMail"),
                     OutgoingMailContainerName = Environment.GetEnvironmentVariable("StorageBlob_OutgoingMail"),
+                    SettingsContainerName = Environment.GetEnvironmentVariable("StorageBlob_Settings"),
                     ErrorMailContainerName = Environment.GetEnvironmentVariable("StorageBlob_ErrorMail"),
                     ConnectionString = Environment.GetEnvironmentVariable("StorageBlob_Connection"),
                 };

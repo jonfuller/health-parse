@@ -4,11 +4,28 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace HealthParse.Standard
 {
     public static class Extensions
     {
+        public static string ReadBlob(this CloudBlob blob)
+        {
+            using (var stream = blob.OpenReadAsync().Result)
+            using (var streamReader = new StreamReader(stream))
+            {
+                return streamReader.ReadToEnd();
+            }
+        }
+        public static void WriteBlob(this CloudBlockBlob blob, string content)
+        {
+            using (var stream = blob.OpenWriteAsync().Result)
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.WriteAsync(content).Wait();
+            }
+        }
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> target, T item)
         {
             return target.Concat(new[] { item });

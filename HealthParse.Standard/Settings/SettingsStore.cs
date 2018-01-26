@@ -1,42 +1,53 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 
 namespace HealthParse.Standard.Settings
 {
     public class SettingsStore : ISettingsStore
     {
+        private readonly CloudBlobContainer _container;
+
+        public SettingsStore(CloudBlobContainer container)
+        {
+            _container = container;
+        }
+
         public void UpdateSettings(ExcelWorksheet settingsSheet, string userId)
         {
-            var defaultSettings = Settings.Default;
-            var currentSettings = GetCurrentSettings(userId);
-            var updatedSettings = ParseSettingsFromSheet(settingsSheet);
+            WriteCurrentSettings(userId, ParseSettingsFromSheet(settingsSheet));
         }
-
-        public void PopulateSettingsSheet(ExcelWorksheet settingsSheet, Settings settings)
-        {
-            settings
-                .Select((setting, i) => new {setting, i})
-                .ToList()
-                .ForEach(s =>
-                {
-                    settingsSheet.Cells[s.i + 2, 1].Value = s.setting.Name;
-                    settingsSheet.Cells[s.i + 2, 2].Value = s.setting.Value;
-                    settingsSheet.Cells[s.i + 2, 3].Value = s.setting.DefaultValue;
-                    settingsSheet.Cells[s.i + 2, 4].Value = s.setting.Description;
-                });
-            settingsSheet.Cells[1, 1].Value = "Name";
-            settingsSheet.Cells[1, 1].Value = "Value";
-            settingsSheet.Cells[1, 1].Value = "DefaultValue";
-            settingsSheet.Cells[1, 1].Value = "Description";
-        }
-
+        
         public Settings GetCurrentSettings(string userId)
         {
-            // TODO
-            return Settings.Default;
+            var settingsRef = _container.GetBlobReference(Path.Combine(userId, "settings.json"));
+            if (!settingsRef.ExistsAsync().Result) return Settings.Default;
+
+            var type = new[] {new {name = "", value = new object()}};
+            var deserialized = JsonConvert.DeserializeAnonymousType(settingsRef.ReadBlob(), type);
+
+            var settings = Settings.Default;
+            foreach (var item in deserialized)
+            {
+                settings.SetValue(item.name, item.value);
+            }
+            return settings;
         }
 
-        private Settings ParseSettingsFromSheet(ExcelWorksheet sheet)
+        private void WriteCurrentSettings(string userId, Settings settings)
+        {
+            var settingsRef = _container.GetBlockBlobReference(Path.Combine(userId, "settings.json"));
+
+            var toSerialize = settings
+                .Select(s => new {name = s.Name, value = s.Value})
+                .ToArray();
+
+            settingsRef.WriteBlob(JsonConvert.SerializeObject(toSerialize));
+        }
+
+        public static Settings ParseSettingsFromSheet(ExcelWorksheet sheet)
         {
             var settings = Settings.Default;
 

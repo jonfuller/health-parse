@@ -18,13 +18,14 @@ namespace HealthParse.Standard.Mail
             });
         }
 
-        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, Settings.Settings settings)
+        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, ISettingsStore settingsStore)
         {
+            var settings = settingsStore.GetCurrentSettings(originalEmail.From.Mailboxes.First().HashedEmail());
             var attachments = originalEmail.LoadAttachments().ToList();
             var handlers = new IMailProcessor[]
             {
                 new AppleHealthAttachmentMailProcessor(from, settings),
-                new SettingsUpdateMailProcessor(from, new SettingsStore()),
+                new SettingsUpdateMailProcessor(from, settingsStore),
                 new HelpMailProcessor(from), // <-- catch all
             };
 
@@ -36,7 +37,7 @@ namespace HealthParse.Standard.Mail
             }
             catch (Exception e)
             {
-                return Result.Failure(ConstructErrorMessage(originalEmail, from, e));
+                return Result.Failure(ConstructErrorMessage(originalEmail, from, e), e);
             }
         }
 

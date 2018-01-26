@@ -25,20 +25,22 @@ namespace HealthParse
             var blobClient = storageAccount.CreateCloudBlobClient();
             var incomingContainer = blobClient.GetContainerReference(storageConfig.IncomingMailContainerName);
             var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
+            var settingsContainer = blobClient.GetContainerReference(storageConfig.SettingsContainerName);
             var errorContainer = blobClient.GetContainerReference(storageConfig.ErrorMailContainerName);
             var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, incomingContainer);
 
-            var settingsStore = new SettingsStore();
+            var settingsStore = new SettingsStore(settingsContainer);
             var reply = MailUtility.ProcessEmail(
                 originalEmail,
                 Fn.EmailConfig.Load().FromEmailAddress,
-                settingsStore.GetCurrentSettings(originalEmail.From.Mailboxes.First().HashedEmail()));
+                settingsStore);
 
             if (!reply.WasSuccessful)
             {
                 var erroredFile = EmailStorage.SaveEmailToStorage(originalEmail, errorContainer);
                 errorQueue.Add(erroredFile);
                 log.Info($"enqueueing error - {erroredFile}");
+                log.Error("Error processing email, ", reply.Exception);
             }
             EmailStorage.DeleteEmailFromStorage(message.AsString, incomingContainer);
 

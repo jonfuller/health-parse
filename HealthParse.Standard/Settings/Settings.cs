@@ -1,46 +1,51 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace HealthParse.Standard.Settings
 {
     public class Settings : IEnumerable<Setting>
     {
+        private static readonly List<Tuple<PropertyInfo, SettingsAttribute>> SettingProps;
+        static Settings()
+        {
+            SettingProps = typeof(Settings)
+                .GetProperties()
+                .Where(prop => prop.Name != nameof(Default))
+                .Select(prop => Tuple.Create(
+                    prop,
+                    (SettingsAttribute) prop.GetCustomAttributes(typeof(SettingsAttribute), true).Single()
+                ))
+                .ToList();
+        }
         public static Settings Default
         {
             get
             {
                 var settings = new Settings();
-                var emptyLookup = settings.ToDictionary(s => s.Name, s => s);
-                typeof(Settings)
-                    .GetProperties()
-                    .Where(prop => prop.Name != nameof(Default))
-                    .ToList()
-                    .ForEach(prop =>
-                    {
-                        var settingAttribute = prop.GetCustomAttributes(typeof(SettingsAttribute), true).FirstOrDefault();
-                        var settingName = ((SettingsAttribute)settingAttribute).Name;
-                        var defaultValue = emptyLookup[settingName].DefaultValue;
+                var settingsLookup = settings.ToDictionary(s => s.Name, s => s);
+                SettingProps.ForEach(s =>
+                {
+                    var defaultValue = settingsLookup[s.Item2.Name].DefaultValue;
 
-                        prop.SetValue(settings, defaultValue);
-                    });
+                    s.Item1.SetValue(settings, defaultValue);
+                });
 
                 return settings;
             }
         }
 
-        public void SetValue(string settingName, object value)
-        {
-            var settingProp = GetType()
-                .GetProperties()
-                .Select(prop => new {prop, attr = (SettingsAttribute)prop.GetCustomAttributes(typeof(SettingsAttribute), true).FirstOrDefault() })
-                .FirstOrDefault(x => x.attr.Name == settingName);
-
-            settingProp?.prop.SetValue(this, value);
-        }
-
         [Settings(Name = "OmitEmptySheets", Description = "Omits a sheet if there is no data for it.", DefaultValue = true)]
         public bool OmitEmptySheets { get; set; }
+
+        public void SetValue(string settingName, object value)
+        {
+            var settingProp = SettingProps.FirstOrDefault(x => x.Item2.Name == settingName);
+
+            settingProp?.Item1.SetValue(this, value);
+        }
 
         public IEnumerator<Setting> GetEnumerator()
         {
@@ -54,17 +59,13 @@ namespace HealthParse.Standard.Settings
 
         private IEnumerable<Setting> CollectSettings()
         {
-            return GetType()
-                .GetProperties()
-                .Where(prop => prop.Name != nameof(Default))
-                .Select(prop => new{prop, attr = (SettingsAttribute)prop.GetCustomAttributes(typeof(SettingsAttribute), true).FirstOrDefault()})
-                .Select(x => new Setting
-                {
-                    Name = x.attr.Name,
-                    Value = x.prop.GetValue(this),
-                    DefaultValue = x.attr.DefaultValue,
-                    Description = x.attr.Description
-                });
+            return SettingProps.Select(x => new Setting
+            {
+                Name = x.Item2.Name,
+                Value = x.Item1.GetValue(this),
+                DefaultValue = x.Item2.DefaultValue,
+                Description = x.Item2.Description
+            });
         }
     }
 }
