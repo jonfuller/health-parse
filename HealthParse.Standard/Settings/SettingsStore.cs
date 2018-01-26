@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
@@ -19,7 +21,44 @@ namespace HealthParse.Standard.Settings
         {
             WriteCurrentSettings(userId, ParseSettingsFromSheet(settingsSheet));
         }
-        
+
+        public Func<ExcelWorksheet, bool> IsCustomWorksheet => worksheet =>
+            worksheet.Name.StartsWith("custom", StringComparison.CurrentCultureIgnoreCase);
+
+        public IEnumerable<ExcelWorksheet> GetCustomSheets(string userId)
+        {
+            var customSheetsRef = _container.GetBlobReference(Path.Combine(userId, "custom_sheets.xlsx"));
+            if (!customSheetsRef.ExistsAsync().Result) return Enumerable.Empty<ExcelWorksheet>();
+
+            using (var stream = customSheetsRef.OpenReadAsync().Result)
+            using (var package = new ExcelPackage())
+            {
+                package.Load(stream);
+
+                return package.Workbook.Worksheets.Where(IsCustomWorksheet).ToList();
+            }
+        }
+        public void UpdateCustomSheets(IEnumerable<ExcelWorksheet> customSheets, string userId)
+        {
+            var sheetList = customSheets.ToList();
+            if (sheetList.IsEmpty()) return;
+
+            using (var package = new ExcelPackage())
+            {
+                var customSheetsRef = _container.GetBlockBlobReference(Path.Combine(userId, "custom_sheets.xlsx"));
+
+                foreach (var sheet in sheetList)
+                {
+                    package.Workbook.Worksheets.Add(sheet.Name, sheet);
+                }
+
+                using (var stream = customSheetsRef.OpenWriteAsync().Result)
+                {
+                    package.SaveAs(stream);
+                }
+            }
+        }
+
         public Settings GetCurrentSettings(string userId)
         {
             var settingsRef = _container.GetBlobReference(Path.Combine(userId, "settings.json"));

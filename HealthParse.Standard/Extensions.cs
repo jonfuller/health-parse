@@ -10,6 +10,11 @@ namespace HealthParse.Standard
 {
     public static class Extensions
     {
+        public static bool IsEmpty<T>(this IEnumerable<T> target)
+        {
+            return !target.Any();
+        }
+
         public static string ReadBlob(this CloudBlob blob)
         {
             using (var stream = blob.OpenReadAsync().Result)
@@ -18,6 +23,7 @@ namespace HealthParse.Standard
                 return streamReader.ReadToEnd();
             }
         }
+
         public static void WriteBlob(this CloudBlockBlob blob, string content)
         {
             using (var stream = blob.OpenWriteAsync().Result)
@@ -26,10 +32,12 @@ namespace HealthParse.Standard
                 writer.WriteAsync(content).Wait();
             }
         }
+
         public static IEnumerable<T> Concat<T>(this IEnumerable<T> target, T item)
         {
             return target.Concat(new[] { item });
         }
+
         public static double SafeParse(this string target, double valueIfParseFail)
         {
             var parsed = double.TryParse(target, out var result);

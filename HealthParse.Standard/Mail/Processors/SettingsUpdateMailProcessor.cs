@@ -31,12 +31,19 @@ namespace HealthParse.Standard.Mail.Processors
                     .Worksheets
                     .FirstOrDefault(sheet => sheet.Name.StartsWith("settings", StringComparison.CurrentCultureIgnoreCase));
 
-                if (settingsSheet == null)
+                var customSheets = excelDoc.Workbook
+                    .Worksheets
+                    .Where(_settingsStore.IsCustomWorksheet)
+                    .ToList();
+
+                if (settingsSheet == null && customSheets.IsEmpty())
                 {
                     return Result.Success(ConstructSettingsUpdateErrorMessage(originalEmail));
                 }
 
-                _settingsStore.UpdateSettings(settingsSheet, originalEmail.From.Mailboxes.First().HashedEmail());
+                var settingsUserId = originalEmail.From.Mailboxes.First().HashedEmail();
+                _settingsStore.UpdateSettings(settingsSheet, settingsUserId);
+                _settingsStore.UpdateCustomSheets(customSheets, settingsUserId);
 
                 return Result.Success(MailUtility.ConstructReply(originalEmail, new MailboxAddress(_from), builder =>
                 {
@@ -57,7 +64,11 @@ See you next time!";
         {
             return MailUtility.ConstructReply(original, new MailboxAddress(_from), builder =>
             {
-                builder.TextBody = $@"To update your settings, include the word 'settings' in your subject, and attach an Excel document with at least the 'Settings' sheet from your latest report (you can include the rest of the document too, I'll just ignore it).
+                builder.TextBody = $@"To update your settings, include the word 'settings' in your subject, and attach an Excel document.
+
+The Excel document should have either the 'Settings' sheet from your latest report and/or custom sheets you'd like included in your next report. Custom sheets should start with the word 'custom'.
+
+You can include the rest of the document too, I'll just ignore the rest of it.
 
 For more information, take a look at the help, here: {MailUtility.HelpDocUrl}
 ";
