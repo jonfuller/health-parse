@@ -66,7 +66,7 @@ namespace HealthParse.Standard.Health
                 massBuilder,
                 bodyFatBuilder);
 
-            var monthBuilders = Enumerable.Range(0, 3)
+            var monthBuilders = Enumerable.Range(0, settings.NumberOfMonthlySummaries)
                 .Select(i => DateTime.Today.AddMonths(-i))
                 .Select(d => new { d.Year, d.Month })
                 .Select(m => new
@@ -80,27 +80,30 @@ namespace HealthParse.Standard.Health
                         distanceCyclingBuilder,
                         massBuilder, bodyFatBuilder),
                     sheetName = $"Month Summary - {m.Year} - {m.Month}",
+                    omitEmptyColumns = settings.OmitEmptyColumnsOnMonthlySummary,
                 });
 
-            var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = "Overall Summary"} }
+            var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = "Overall Summary", omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary} }
                 .Concat(monthBuilders)
-                .Concat(new { builder = (ISheetBuilder)stepBuilder, sheetName = "Steps" })
-                .Concat(new { builder = (ISheetBuilder)massBuilder, sheetName = "Mass (Weight)" })
-                .Concat(new { builder = (ISheetBuilder)bodyFatBuilder, sheetName = "Body Fat %" })
-                .Concat(new { builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)" })
-                .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)" })
-                .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training" })
-                .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running" })
-                .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking" })
-                .Concat(new { builder = (ISheetBuilder)settingsBuilder, sheetName = "Settings"});
+                .Concat(new { builder = (ISheetBuilder)stepBuilder, sheetName = "Steps", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)massBuilder, sheetName = "Mass (Weight)", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)bodyFatBuilder, sheetName = "Body Fat %", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)settingsBuilder, sheetName = "Settings", omitEmptyColumns = true });
 
             sheetBuilders.ToList().ForEach(s =>
             {
                 var sheetData = s.builder.BuildRawSheet().ToList();
-                if (sheetData.Any())
+                var keepEmptySheets = !settings.OmitEmptySheets;
+
+                if (keepEmptySheets || sheetData.Any())
                 {
                     var sheet = workbook.Worksheets.Add(s.sheetName);
-                    sheet.WriteData(sheetData);
+                    sheet.WriteData(sheetData, omitEmptyColumns: s.omitEmptyColumns);
                 }
             });
         }

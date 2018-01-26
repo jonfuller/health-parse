@@ -13,11 +13,9 @@ namespace HealthParse.Standard.Settings
         {
             SettingProps = typeof(Settings)
                 .GetProperties()
-                .Where(prop => prop.Name != nameof(Default))
-                .Select(prop => Tuple.Create(
-                    prop,
-                    (SettingsAttribute) prop.GetCustomAttributes(typeof(SettingsAttribute), true).Single()
-                ))
+                .Select(prop => new {prop, attr = prop.GetCustomAttributes(typeof(SettingsAttribute), true).FirstOrDefault() })
+                .Where(x => x.attr != null)
+                .Select(x => Tuple.Create(x.prop, (SettingsAttribute)x.attr))
                 .ToList();
         }
         public static Settings Default
@@ -39,6 +37,15 @@ namespace HealthParse.Standard.Settings
 
         [Settings(Name = "OmitEmptySheets", Description = "Omits a sheet if there is no data for it.", DefaultValue = true)]
         public bool OmitEmptySheets { get; set; }
+
+        [Settings(Name = "OmitEmptyColumnsOnOverallSummary", Description = "Omits a column on the 'Overall Summary' sheet if that column is empty.", DefaultValue = true)]
+        public bool OmitEmptyColumnsOnOverallSummary { get; set; }
+
+        [Settings(Name = "OmitEmptyColumnsOnMonthlySummary", Description = "Omits a column on a Monthly Summary sheet if that column is empty.", DefaultValue = true)]
+        public bool OmitEmptyColumnsOnMonthlySummary { get; set; }
+
+        [Settings(Name = "NumberOfMonthlySummaries", Description = "The number of monthly summary sheets to include in the spreadsheet.", DefaultValue = 3)]
+        public int NumberOfMonthlySummaries { get; set; }
 
         public void SetValue(string settingName, object value)
         {
