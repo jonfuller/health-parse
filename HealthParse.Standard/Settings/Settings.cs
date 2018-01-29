@@ -51,7 +51,7 @@ namespace HealthParse.Standard.Settings
         {
             var settingProp = SettingProps.FirstOrDefault(x => x.Item2.Name == settingName);
 
-            settingProp?.Item1.SetValue(this, value);
+            settingProp?.Item1.SetValue(this, Coercion.Coerce(value, settingProp.Item1.PropertyType));
         }
 
         public IEnumerator<Setting> GetEnumerator()

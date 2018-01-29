@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HealthParse.Standard.Health;
 using MimeKit;
+using OfficeOpenXml;
 
 namespace HealthParse.Standard.Mail.Processors
 {
@@ -10,17 +11,20 @@ namespace HealthParse.Standard.Mail.Processors
     {
         private readonly string _from;
         private readonly Settings.Settings _settings;
+        private readonly IEnumerable<ExcelWorksheet> _customSheets;
 
-        public AppleHealthAttachmentMailProcessor(string from, Settings.Settings settings)
+        public AppleHealthAttachmentMailProcessor(string from, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
             _from = @from;
             _settings = settings;
+            _customSheets = customSheets;
         }
+
         public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<Tuple<string, byte[]>> attachments)
         {
             var exportAttachment = attachments.Single(a => a.Item1 == "export.zip");
 
-            var attachment = ExcelReport.CreateReport(exportAttachment.Item2, _settings);
+            var attachment = ExcelReport.CreateReport(exportAttachment.Item2, _settings, _customSheets);
             var attachmentName = $"export.{originalEmail.Date.Date:yyyy-mm-dd}.xlsx";
 
             var reply = MailUtility.ConstructReply(originalEmail, new MailboxAddress(_from), builder =>

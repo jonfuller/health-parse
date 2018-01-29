@@ -1,15 +1,17 @@
 ﻿using HealthParse.Standard.Health.Sheets;
 using OfficeOpenXml;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using HealthParse.Standard.Settings;
 
 namespace HealthParse.Standard.Health
 {
     public static class ExcelReport
     {
-        public static byte[] CreateReport(byte[] exportZip, Settings.Settings settings)
+        public static byte[] CreateReport(byte[] exportZip, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
             using (var inputStream = new MemoryStream(exportZip))
             using (var outputStream = new MemoryStream())
@@ -17,7 +19,7 @@ namespace HealthParse.Standard.Health
             {
                 var export = LoadExportXml(inputStream);
 
-                BuildReport(export, excelFile.Workbook, settings);
+                BuildReport(export, excelFile.Workbook, settings, customSheets);
 
                 excelFile.SaveAs(outputStream);
 
@@ -34,7 +36,7 @@ namespace HealthParse.Standard.Health
             .FirstOrDefault();
         }
 
-        public static void BuildReport(XDocument export, ExcelWorkbook workbook, Settings.Settings settings)
+        public static void BuildReport(XDocument export, ExcelWorkbook workbook, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
             var records = export.Descendants("Record")
                 .Select(Record.FromXElement)
@@ -106,6 +108,11 @@ namespace HealthParse.Standard.Health
                     sheet.WriteData(sheetData, omitEmptyColumns: s.omitEmptyColumns);
                 }
             });
+
+            foreach (var customSheet in customSheets)
+            {
+                workbook.Worksheets.Add(customSheet.Name, customSheet);
+            }
         }
     }
 }

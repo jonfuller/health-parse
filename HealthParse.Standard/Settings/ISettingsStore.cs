@@ -8,6 +8,7 @@ namespace HealthParse.Standard.Settings
     {
         void UpdateSettings(ExcelWorksheet settingsSheet, string userId);
         void UpdateCustomSheets(IEnumerable<ExcelWorksheet> settingsSheet, string userId);
+        IEnumerable<ExcelWorksheet> GetCustomSheets(string userId);
         Func<ExcelWorksheet, bool> IsCustomWorksheet { get; }
         Settings GetCurrentSettings(string userId);
     }

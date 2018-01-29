@@ -20,11 +20,14 @@ namespace HealthParse.Standard.Mail
 
         public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, ISettingsStore settingsStore)
         {
-            var settings = settingsStore.GetCurrentSettings(originalEmail.From.Mailboxes.First().HashedEmail());
+            var userId = originalEmail.From.Mailboxes.First().HashedEmail();
+            var settings = settingsStore.GetCurrentSettings(userId);
+            var customSheets = settingsStore.GetCustomSheets(userId);
+
             var attachments = originalEmail.LoadAttachments().ToList();
             var handlers = new IMailProcessor[]
             {
-                new AppleHealthAttachmentMailProcessor(from, settings),
+                new AppleHealthAttachmentMailProcessor(from, settings, customSheets),
                 new SettingsUpdateMailProcessor(from, settingsStore),
                 new HelpMailProcessor(from), // <-- catch all
             };
