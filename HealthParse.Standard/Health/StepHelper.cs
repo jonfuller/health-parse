@@ -13,7 +13,7 @@ namespace HealthParse.Standard.Health
             {
                 var current = justSteps[i];
                 var next = justSteps.Skip(i + 1).FirstOrDefault();
-                var nextOverlaps = next != null && current.DateRange.Includes(next.StartDate, Clusivity.Inclusive);
+                var nextOverlaps = next != null && current.DateRange.Includes(next.StartDate, Clusivity.LowerInclusive);
 
                 if (nextOverlaps)
                 {
