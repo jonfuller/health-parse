@@ -1,7 +1,5 @@
-using System.Linq;
 using HealthParse.Mail;
 using HealthParse.Standard.Mail;
-using HealthParse.Standard.Mail.Processors;
 using HealthParse.Standard.Settings;
 using HealthParseFunctions;
 using Microsoft.Azure.WebJobs;
@@ -29,7 +27,7 @@ namespace HealthParse
             var errorContainer = blobClient.GetContainerReference(storageConfig.ErrorMailContainerName);
             var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, incomingContainer);
 
-            var settingsStore = new SettingsStore(settingsContainer);
+            var settingsStore = new SettingsStore(new CloudStore(settingsContainer));
             var reply = MailUtility.ProcessEmail(
                 originalEmail,
                 Fn.EmailConfig.Load().FromEmailAddress,

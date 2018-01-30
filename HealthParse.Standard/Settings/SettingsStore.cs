@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using OfficeOpenXml;
 
@@ -10,11 +8,11 @@ namespace HealthParse.Standard.Settings
 {
     public class SettingsStore : ISettingsStore
     {
-        private readonly CloudBlobContainer _container;
+        private readonly IStorage _storage;
 
-        public SettingsStore(CloudBlobContainer container)
+        public SettingsStore(IStorage storage)
         {
-            _container = container;
+            _storage = storage;
         }
 
         public void UpdateSettings(ExcelWorksheet settingsSheet, string userId)
@@ -27,16 +25,11 @@ namespace HealthParse.Standard.Settings
 
         public IEnumerable<ExcelWorksheet> GetCustomSheets(string userId)
         {
-            var customSheetsRef = _container.GetBlobReference(Path.Combine(userId, "custom_sheets.xlsx"));
-            if (!customSheetsRef.ExistsAsync().Result) return Enumerable.Empty<ExcelWorksheet>();
+            var customSheets = _storage.GetCustomSheets(userId);
 
-            using (var stream = customSheetsRef.OpenReadAsync().Result)
-            using (var package = new ExcelPackage())
-            {
-                package.Load(stream);
-
-                return package.Workbook.Worksheets.Where(IsCustomWorksheet).ToList();
-            }
+            return customSheets == null
+                ? Enumerable.Empty<ExcelWorksheet>()
+                : customSheets.Workbook.Worksheets.Where(IsCustomWorksheet);
         }
         public void UpdateCustomSheets(IEnumerable<ExcelWorksheet> customSheets, string userId)
         {
@@ -45,27 +38,23 @@ namespace HealthParse.Standard.Settings
 
             using (var package = new ExcelPackage())
             {
-                var customSheetsRef = _container.GetBlockBlobReference(Path.Combine(userId, "custom_sheets.xlsx"));
-
                 foreach (var sheet in sheetList)
                 {
                     package.Workbook.Worksheets.Add(sheet.Name, sheet);
                 }
 
-                using (var stream = customSheetsRef.OpenWriteAsync().Result)
-                {
-                    package.SaveAs(stream);
-                }
+                _storage.WriteCustomSheets(package, userId);
             }
         }
 
         public Settings GetCurrentSettings(string userId)
         {
-            var settingsRef = _container.GetBlobReference(Path.Combine(userId, "settings.json"));
-            if (!settingsRef.ExistsAsync().Result) return Settings.Default;
+            var settingsJson = _storage.GetSettingsJson(userId);
+
+            if (settingsJson == null) return Settings.Default;
 
             var type = new[] {new {name = "", value = new object()}};
-            var deserialized = JsonConvert.DeserializeAnonymousType(settingsRef.ReadBlob(), type);
+            var deserialized = JsonConvert.DeserializeAnonymousType(settingsJson, type);
 
             var settings = Settings.Default;
             foreach (var item in deserialized)
@@ -77,13 +66,11 @@ namespace HealthParse.Standard.Settings
 
         private void WriteCurrentSettings(string userId, Settings settings)
         {
-            var settingsRef = _container.GetBlockBlobReference(Path.Combine(userId, "settings.json"));
-
             var toSerialize = settings
                 .Select(s => new {name = s.Name, value = s.Value})
                 .ToArray();
 
-            settingsRef.WriteBlob(JsonConvert.SerializeObject(toSerialize));
+            _storage.WriteSettingsFile(JsonConvert.SerializeObject(toSerialize), userId);
         }
 
         public static Settings ParseSettingsFromSheet(ExcelWorksheet sheet)
