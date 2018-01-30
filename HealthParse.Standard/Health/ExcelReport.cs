@@ -71,18 +71,28 @@ namespace HealthParse.Standard.Health
             var monthBuilders = Enumerable.Range(0, settings.NumberOfMonthlySummaries)
                 .Select(i => DateTime.Today.AddMonths(-i))
                 .Select(d => new { d.Year, d.Month })
-                .Select(m => new
+                .Select(m =>
                 {
-                    builder = (ISheetBuilder)new MonthSummaryBuilder(m.Year, m.Month,
+                    var isCurrentMonth = m.Year == DateTime.Today.Year && m.Month == DateTime.Today.Month;
+                    var sheetName = isCurrentMonth && settings.UseConstantNameForMostRecentMonthlySummarySheet
+                        ? "Month Summary - Current"
+                        : $"Month Summary - {m.Year} - {m.Month}";
+
+                    return new
+                    {
+                        builder = (ISheetBuilder)new MonthSummaryBuilder(m.Year,
+                        m.Month,
                         stepBuilder,
                         cyclingWorkoutBuilder,
                         runningWorkoutBuilder,
                         walkingWorkoutBuilder,
                         strengthTrainingBuilder,
                         distanceCyclingBuilder,
-                        massBuilder, bodyFatBuilder),
-                    sheetName = $"Month Summary - {m.Year} - {m.Month}",
-                    omitEmptyColumns = settings.OmitEmptyColumnsOnMonthlySummary,
+                        massBuilder,
+                        bodyFatBuilder),
+                        sheetName,
+                        omitEmptyColumns = settings.OmitEmptyColumnsOnMonthlySummary,
+                    };
                 });
 
             var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = "Overall Summary", omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary} }
