@@ -25,7 +25,7 @@ namespace HealthParse.Standard.Mail.Processors
             var exportAttachment = attachments.Single(a => a.Item1 == "export.zip");
 
             var attachment = ExcelReport.CreateReport(exportAttachment.Item2, _settings, _customSheets);
-            var attachmentName = $"export.{originalEmail.Date.Date:yyyy-mm-dd}.xlsx";
+            var attachmentName = $"export.{originalEmail.Date.Date:yyyy-MM-dd}.xlsx";
 
             var reply = MailUtility.ConstructReply(originalEmail, new MailboxAddress(_from), builder =>
             {
