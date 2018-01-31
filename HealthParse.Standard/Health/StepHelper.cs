@@ -31,10 +31,6 @@ namespace HealthParse.Standard.Health
 
         private static Record PickStepRecordToReject(Record a, Record b)
         {
-            var records = new[] {a, b};
-            var aValue = a.Value.SafeParse(0);
-            var bValue = b.Value.SafeParse(0);
-
             var aSource = a.Raw.Attribute("sourceName").Value;
             var bSource = b.Raw.Attribute("sourceName").Value;
 
