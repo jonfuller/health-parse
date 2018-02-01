@@ -50,6 +50,9 @@ namespace HealthParse.Standard.Settings
         [Settings(Name = "UseConstantNameForMostRecentMonthlySummarySheet", Description = "The current month's sheet name will be 'Month Summary - Current' instead of 'Month Summary - yyyy - mm'. This enables advanced usage in coordination with custom sheets (e.g. custom reporting for the current month).", DefaultValue = false)]
         public bool UseConstantNameForMostRecentMonthlySummarySheet { get; set; }
 
+        [Settings(Name = "UseConstantNameForPreviousMonthlySummarySheet", Description = "The previous month's sheet name will be 'Month Summary - Previous' instead of 'Month Summary - yyyy - mm'. This enables advanced usage in coordination with custom sheets (e.g. custom reporting for the previous month).", DefaultValue = false)]
+        public bool UseConstantNameForPreviousMonthlySummarySheet { get; set; }
+
         public void SetValue(string settingName, object value)
         {
             var settingProp = SettingProps.FirstOrDefault(x => x.Item2.Name == settingName);
