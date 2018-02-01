@@ -5,6 +5,7 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
+using Microsoft.ApplicationInsights;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
@@ -34,6 +35,7 @@ namespace HealthParse
                 var storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
                 var blobClient = storageAccount.CreateCloudBlobClient();
                 var container = blobClient.GetContainerReference(storageConfig.IncomingMailContainerName);
+                var telemetry = new TelemetryClient();
 
                 inbox.Search(SearchQuery.NotSeen)
                     .Select(uid => new { uid, message = inbox.GetMessage(uid) })
@@ -45,6 +47,7 @@ namespace HealthParse
                         inbox.AddFlags(x.uid, MessageFlags.Seen, false);
 
                         log.Info($"Queued email - {x.message.From.ToString()} - {x.message.Subject} - {filename}");
+                        telemetry.TrackEvent(Events.ReceivedMail);
                     });
 
                 client.Disconnect(true);
