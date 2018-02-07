@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using HealthParse.Standard.Settings;
 
 namespace HealthParse.Standard.Health
 {
@@ -76,7 +75,7 @@ namespace HealthParse.Standard.Health
                     var lastMonth = DateTime.Today.AddMonths(-1);
 
                     var isCurrentMonth = m.Year == DateTime.Today.Year && m.Month == DateTime.Today.Month;
-                    var isPreviousMonth = m.Year == lastMonth.Year && m.Month == lastMonth.Year;
+                    var isPreviousMonth = m.Year == lastMonth.Year && m.Month == lastMonth.Month;
 
                     var sheetName =
                           isCurrentMonth && settings.UseConstantNameForMostRecentMonthlySummarySheet ? "Month Summary - Current"
