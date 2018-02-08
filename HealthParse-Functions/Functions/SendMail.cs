@@ -1,6 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using HealthParse.Mail;
+using HealthParse.Standard;
 using HealthParseFunctions;
 using MailKit.Net.Smtp;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
@@ -22,12 +27,17 @@ namespace HealthParse
                 var blobClient = storageAccount.CreateCloudBlobClient();
                 var outgoingContainer = blobClient.GetContainerReference(storageConfig.OutgoingMailContainerName);
                 var emailConfig = Fn.EmailConfig.Load();
+                var telemetry = new TelemetryClient(new TelemetryConfiguration(Fn.InstrumentationKey()));
 
                 var email = EmailStorage.LoadEmailFromStorage(message.AsString, outgoingContainer);
                 client.Connect(emailConfig.SmtpServer, emailConfig.SmtpPort);
                 client.Authenticate(emailConfig.Username, emailConfig.Password);
                 client.Send(email);
                 client.Disconnect(true);
+                telemetry.TrackEvent(
+                    Events.SentMail,
+                    Events.Properties.Init()
+                        .Then(Events.Properties.EmailAddress, email.To.Mailboxes.First().Address));
 
                 EmailStorage.DeleteEmailFromStorage(message.AsString, outgoingContainer);
 

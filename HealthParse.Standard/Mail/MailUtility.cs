@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using HealthParse.Standard.Mail.Processors;
 using HealthParse.Standard.Settings;
+using Microsoft.ApplicationInsights;
 using MimeKit;
 
 namespace HealthParse.Standard.Mail
@@ -18,7 +22,7 @@ namespace HealthParse.Standard.Mail
             });
         }
 
-        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, ISettingsStore settingsStore)
+        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, ISettingsStore settingsStore, TelemetryClient telemetry)
         {
             var userId = originalEmail.From.Mailboxes.First().HashedEmail();
             var settings = settingsStore.GetCurrentSettings(userId);
@@ -34,9 +38,13 @@ namespace HealthParse.Standard.Mail
 
             try
             {
-                return handlers
-                    .First(h => h.CanHandle(originalEmail, attachments))
-                    .Process(originalEmail, attachments);
+                var processor = handlers.First(h => h.CanHandle(originalEmail, attachments));
+                var result = Benchmark.Time(() => processor.Process(originalEmail, attachments));
+                telemetry.TrackEvent(
+                    processor.GetType().Name,
+                    metrics: Events.Metrics.Init()
+                        .Then(Events.Metrics.Duration, result.Elapsed.TotalMinutes));
+                return result.Value;
             }
             catch (Exception e)
             {
@@ -116,6 +124,46 @@ namespace HealthParse.Standard.Mail
             reply.Body = builder.ToMessageBody();
 
             return reply;
+        }
+    }
+    public class BenchmarkResult<T> : BenchmarkResult
+    {
+        public T Value { get; }
+        public BenchmarkResult(T value, TimeSpan elapsed) : base(elapsed)
+        {
+            Value = value;
+        }
+    }
+
+    public class BenchmarkResult
+    {
+        public TimeSpan Elapsed { get; }
+
+        public BenchmarkResult(TimeSpan elapsed)
+        {
+            Elapsed = elapsed;
+        }
+    }
+    public static class Benchmark
+    {
+        public static BenchmarkResult<T> Time<T>(Func<T> toRun)
+        {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            var value = toRun();
+            stopWatch.Stop();
+
+            return new BenchmarkResult<T>(value, stopWatch.Elapsed);
+        }
+
+        public static BenchmarkResult Time(Action toRun)
+        {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            toRun();
+            stopWatch.Stop();
+
+            return new BenchmarkResult(stopWatch.Elapsed);
         }
     }
 }

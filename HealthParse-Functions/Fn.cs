@@ -4,6 +4,7 @@ namespace HealthParseFunctions
 {
     public static class Fn
     {
+        public static string InstrumentationKey() => Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY");
         public const string ConnectionKeyName = "QueueStorage";
 
         public static class Qs

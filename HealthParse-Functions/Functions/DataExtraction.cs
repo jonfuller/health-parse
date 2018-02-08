@@ -2,6 +2,8 @@ using HealthParse.Mail;
 using HealthParse.Standard.Mail;
 using HealthParse.Standard.Settings;
 using HealthParseFunctions;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.WindowsAzure.Storage;
@@ -26,12 +28,14 @@ namespace HealthParse
             var settingsContainer = blobClient.GetContainerReference(storageConfig.SettingsContainerName);
             var errorContainer = blobClient.GetContainerReference(storageConfig.ErrorMailContainerName);
             var originalEmail = EmailStorage.LoadEmailFromStorage(message.AsString, incomingContainer);
+            var telemetry = new TelemetryClient(new TelemetryConfiguration(Fn.InstrumentationKey()));
 
             var settingsStore = new SettingsStore(new CloudStore(settingsContainer));
             var reply = MailUtility.ProcessEmail(
                 originalEmail,
                 Fn.EmailConfig.Load().FromEmailAddress,
-                settingsStore);
+                settingsStore,
+                telemetry);
 
             if (!reply.WasSuccessful)
             {
