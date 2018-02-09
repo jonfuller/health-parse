@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using HealthParse.Standard.Mail.Processors;
 using HealthParse.Standard.Settings;
 using Microsoft.ApplicationInsights;

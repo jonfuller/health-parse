@@ -1,10 +1,10 @@
-﻿using MimeKit;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.WindowsAzure.Storage.Blob;
+using MimeKit;
 
 namespace HealthParse.Standard
 {
