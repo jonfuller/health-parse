@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -8,6 +9,7 @@ namespace HealthParse.Standard.Health.Sheets
     {
         private readonly int _targetYear;
         private readonly int _targetMonth;
+        private readonly DateTimeZone _zone;
         private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
@@ -17,7 +19,7 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
         private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
 
-        public MonthSummaryBuilder(int targetYear, int targetMonth,
+        public MonthSummaryBuilder(int targetYear, int targetMonth, DateTimeZone zone,
             ISheetBuilder<StepBuilder.StepItem> stepBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
@@ -29,6 +31,7 @@ namespace HealthParse.Standard.Health.Sheets
         {
             _targetYear = targetYear;
             _targetMonth = targetMonth;
+            _zone = zone;
 
             _stepBuilder = stepBuilder;
             _cyclingBuilder = cyclingBuilder;
@@ -43,10 +46,10 @@ namespace HealthParse.Standard.Health.Sheets
         IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
             var monthDays = Enumerable.Range(1, DateTime.DaysInMonth(_targetYear, _targetMonth))
-                .Select(d => new DateTime(_targetYear, _targetMonth, d))
+                .Select(d => new LocalDate(_targetYear, _targetMonth, d))
                 .ToList();
 
-            var range = new DateRange(monthDays.First(), monthDays.Last());
+            var range = new DateRange(monthDays.First().AtStartOfDayInZone(_zone), monthDays.Last().AtStartOfDayInZone(_zone));
 
             var stepsData = _stepBuilder.BuildSummaryForDateRange(range);
             var cyclingWorkouts = _cyclingBuilder.BuildSummaryForDateRange(range);
@@ -77,7 +80,7 @@ namespace HealthParse.Standard.Health.Sheets
                 orderby day descending
                 select new
                 {
-                    day,
+                    day = day.ToDateTimeUnspecified(),
                     step?.Steps,
                     mass?.Mass,
                     bodyFat?.BodyFatPercentage,

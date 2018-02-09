@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -7,6 +8,7 @@ namespace HealthParse.Standard.Health.Sheets
     {
         private readonly IReadOnlyDictionary<string, IEnumerable<Record>> _records;
         private readonly IReadOnlyDictionary<string, IEnumerable<Workout>> _workouts;
+        private readonly DateTimeZone _zone;
         private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
@@ -18,6 +20,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         public SummaryBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records,
             IReadOnlyDictionary<string, IEnumerable<Workout>> workouts,
+            DateTimeZone zone,
             ISheetBuilder<StepBuilder.StepItem> stepBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
@@ -29,6 +32,7 @@ namespace HealthParse.Standard.Health.Sheets
         {
             _records = records;
             _workouts = workouts;
+            _zone = zone;
 
             _stepBuilder = stepBuilder;
             _cyclingBuilder = cyclingBuilder;
@@ -44,12 +48,12 @@ namespace HealthParse.Standard.Health.Sheets
         {
             var recordMonths = _records.Values
                 .SelectMany(r => r)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .GroupBy(s => new { s.StartDate.InZone(_zone).Year, s.StartDate.InZone(_zone).Month })
                 .Select(g => g.Key);
 
             var workoutMonths = _workouts.Values
                 .SelectMany(r => r)
-                .GroupBy(s => new { s.StartDate.Date.Year, s.StartDate.Date.Month })
+                .GroupBy(s => new { s.StartDate.InZone(_zone).Year, s.StartDate.InZone(_zone).Month })
                 .Select(g => g.Key);
 
             var healthMonths = recordMonths.Concat(workoutMonths)
@@ -85,7 +89,7 @@ namespace HealthParse.Standard.Health.Sheets
                       orderby month descending
                       select new
                       {
-                          month,
+                          month = month.ToDateTimeUnspecified(),
                           steps?.Steps,
                           AverageMass = mass?.Mass,
                           AverageBodyFatPct = bodyFat?.BodyFatPercentage,

@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets
 {
     public class StepBuilder : ISheetBuilder<StepBuilder.StepItem>
     {
+        private readonly DateTimeZone _zone;
         private readonly IEnumerable<Record> _records;
 
-        public StepBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records)
+        public StepBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone)
         {
+            _zone = zone;
             _records = records.ContainsKey(HKConstants.Records.StepCount)
                 ? records[HKConstants.Records.StepCount]
                 : Enumerable.Empty<Record>();
@@ -17,7 +19,8 @@ namespace HealthParse.Standard.Health.Sheets
 
         IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
-            return GetStepsByDay();
+            return GetStepsByDay()
+                .Select(s => new{Date = s.Date.ToDateTimeUnspecified(), s.Steps});
         }
 
         IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummary()
@@ -27,22 +30,23 @@ namespace HealthParse.Standard.Health.Sheets
                 .Select(x => new StepItem(x.Key.Year, x.Key.Month, x.Sum(r => r.Steps)));
         }
 
-        IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummaryForDateRange(IRange<DateTime> dateRange)
+        IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
-            return GetStepsByDay().Where(x => dateRange.Includes(x.Date, Clusivity.Inclusive));
+            return GetStepsByDay().Where(x => dateRange.Includes(x.Date.AtStartOfDayInZone(_zone), Clusivity.Inclusive));
         }
 
         private IEnumerable<StepItem> GetStepsByDay()
         {
             return StepHelper.PrioritizeSteps(_records)
-                .GroupBy(s => s.StartDate.Date)
-                .Select(x => new StepItem(x.Key, (int)x.Sum(r => r.Value.SafeParse(0))))
+                .Select(r => new { zoned = r.StartDate.InZone(_zone), r })
+                .GroupBy(s => s.zoned.Date)
+                .Select(x => new StepItem(x.Key, (int)x.Sum(r => r.r.Value.SafeParse(0))))
                 .OrderByDescending(s => s.Date);
         }
 
         public class StepItem : DatedItem
         {
-            public StepItem(DateTime date, int steps) : base(date)
+            public StepItem(LocalDate date, int steps) : base(date)
             {
                 Steps = steps;
             }
@@ -52,7 +56,7 @@ namespace HealthParse.Standard.Health.Sheets
                 Steps = steps;
             }
 
-            public int Steps { get; internal set; }
+            public int Steps { get; }
 
         }
     }

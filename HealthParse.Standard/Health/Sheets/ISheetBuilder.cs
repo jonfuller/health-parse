@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -7,24 +8,24 @@ namespace HealthParse.Standard.Health.Sheets
     {
         IEnumerable<object> BuildRawSheet();
     }
-    public interface ISheetBuilder<TItem> : ISheetBuilder where TItem : DatedItem
+    public interface ISheetBuilder<out TItem> : ISheetBuilder where TItem : DatedItem
     {
         IEnumerable<TItem> BuildSummary();
-        IEnumerable<TItem> BuildSummaryForDateRange(IRange<DateTime> dateRange);
+        IEnumerable<TItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange);
     }
 
     public class DatedItem
     {
         public DatedItem(int year, int month)
-            : this(new DateTime(year, month, 1))
+            : this(new LocalDate(year, month, 1))
         {
-
         }
-        protected DatedItem(DateTime date)
+
+        protected DatedItem(LocalDate date)
         {
             Date = date;
         }
 
-        public DateTime Date { get; }
+        public LocalDate Date { get; }
     }
 }

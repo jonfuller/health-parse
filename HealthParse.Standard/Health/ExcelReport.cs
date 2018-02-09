@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using NodaTime;
 
 namespace HealthParse.Standard.Health
 {
@@ -47,17 +48,20 @@ namespace HealthParse.Standard.Health
                 .GroupBy(r => r.WorkoutType)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-            var stepBuilder = new StepBuilder(records);
-            var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts);
-            var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts);
-            var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts);
-            var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts);
-            var distanceCyclingBuilder = new DistanceCyclingBuilder(records);
-            var massBuilder = new MassBuilder(records);
-            var bodyFatBuilder = new BodyFatPercentageBuilder(records);
+            var edt = DateTimeZone.ForOffset(Offset.FromHours(-5));
+            var utc = DateTimeZone.Utc;
+            var zone = edt;
+            var stepBuilder = new StepBuilder(records, zone);
+            var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone);
+            var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone);
+            var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone);
+            var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone);
+            var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone);
+            var massBuilder = new MassBuilder(records, zone);
+            var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
-            var summaryBuilder = new SummaryBuilder(records, workouts,
+            var summaryBuilder = new SummaryBuilder(records, workouts, zone,
                 stepBuilder,
                 cyclingWorkoutBuilder,
                 runningWorkoutBuilder,
@@ -86,6 +90,7 @@ namespace HealthParse.Standard.Health
                     {
                         builder = (ISheetBuilder)new MonthSummaryBuilder(m.Year,
                         m.Month,
+                        zone,
                         stepBuilder,
                         cyclingWorkoutBuilder,
                         runningWorkoutBuilder,

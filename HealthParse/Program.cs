@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using HealthParse.Standard;
 using HealthParse.Standard.Health;
-using HealthParse.Standard.Health.Sheets;
-using HealthParse.Standard.Mail;
-using HealthParse.Standard.Mail.Processors;
 using HealthParse.Standard.Settings;
+using NodaTime.Text;
 using OfficeOpenXml;
 
 namespace HealthParse
@@ -18,7 +14,8 @@ namespace HealthParse
     {
         static void Main(string[] args)
         {
-            var fileLocation = @"c:\users\jcfuller\Desktop\export.zip";
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            var fileLocation = @"c:\users\jcfuller\Downloads\export.zip";
             XDocument export = null;
             using (var reader = new StreamReader(fileLocation))
             {
@@ -29,20 +26,16 @@ namespace HealthParse
                 .FirstOrDefault();
             }
 
-            var settingsStore = new SettingsStore();
-            var settings = settingsStore.GetCurrentSettings("abc");
-            var filename = @"c:\users\jcfuller\Desktop\export.xlsx";
+            var settings = Settings.Default;
+            settings.UseConstantNameForMostRecentMonthlySummarySheet = true;
+            settings.UseConstantNameForPreviousMonthlySummarySheet = true;
+
             using (var excelFile = new ExcelPackage())
-            using (var filestream = new FileStream(filename, FileMode.Create))
             {
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                ExcelReport.BuildReport(export, excelFile.Workbook, settings);
-                excelFile.SaveAs(filestream);
+                ExcelReport.BuildReport(export, excelFile.Workbook, settings, Enumerable.Empty<ExcelWorksheet>());
+
+                excelFile.SaveAs(new FileInfo(@"c:\users\jcfuller\Desktop\test-edt.xlsx"));
             }
-            //workouts[HKConstants.Workouts.Strength]
-            //    .OrderBy(w => w.StartDate)
-            //    .Select(w => $"{w.StartDate} - {w.SourceName} - {w.Duration}")
-            //    .ToList().ForEach(Console.WriteLine);
 
             Console.WriteLine("done, press a key");
             Console.ReadKey();

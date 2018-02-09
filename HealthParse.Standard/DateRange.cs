@@ -1,50 +1,26 @@
-﻿using System;
+﻿using NodaTime;
 
 namespace HealthParse.Standard
 {
-    public class DateRange : IRange<DateTime>
+    public class DateRange : InstantRange, IRange<ZonedDateTime>
     {
-        public DateRange(DateTime start, DateTime end)
+        public ZonedDateTime Start { get; }
+        public ZonedDateTime End { get; }
+
+        public DateRange(ZonedDateTime start, ZonedDateTime end) : base(start.ToInstant(), end.ToInstant())
         {
             Start = start;
             End = end;
         }
 
-        public DateTime Start { get; }
-        public DateTime End { get; }
-
-        public bool Includes(DateTime value, Clusivity clusivity = Clusivity.Exclusive)
+        public bool Includes(ZonedDateTime value, Clusivity clusivity = Clusivity.Exclusive)
         {
-            switch (clusivity)
-            {
-                case Clusivity.Inclusive:
-                    return (Start <= value) && (value <= End);
-                case Clusivity.Exclusive:
-                    return (Start < value) && (value < End);
-                case Clusivity.LowerInclusive:
-                    return (Start <= value) && (value < End);
-                case Clusivity.UpperInclusive:
-                    return (Start < value) && (value <= End);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(clusivity), clusivity, null);
-            }
+            return Includes(value.ToInstant(), clusivity);
         }
 
-        public bool Includes(IRange<DateTime> range, Clusivity clusivity = Clusivity.Exclusive)
+        public bool Includes(IRange<ZonedDateTime> range, Clusivity clusivity = Clusivity.Exclusive)
         {
-            switch (clusivity)
-            {
-                case Clusivity.Inclusive:
-                    return (Start <= range.Start) && (range.End <= End);
-                case Clusivity.Exclusive:
-                    return (Start < range.Start) && (range.End < End);
-                case Clusivity.LowerInclusive:
-                    return (Start <= range.Start) && (range.End < End);
-                case Clusivity.UpperInclusive:
-                    return (Start < range.Start) && (range.End <= End);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(clusivity), clusivity, null);
-            }
+            return Includes(new InstantRange(range.Start.ToInstant(), range.End.ToInstant()), clusivity);
         }
     }
 }
