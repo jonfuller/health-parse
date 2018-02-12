@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 
@@ -22,6 +23,10 @@ namespace HealthParse.Standard.Health.Sheets
                 .Select(r => new { Date = r.StartDate.InZone(_zone), BodyFatPct = r.Value.SafeParse(0) })
                 .OrderByDescending(r => r.Date.ToInstant());
         }
+
+        bool ISheetBuilder.HasHeaders => false;
+
+        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
 
         IEnumerable<BodyFatItem> ISheetBuilder<BodyFatItem>.BuildSummary()
         {

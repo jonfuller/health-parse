@@ -1,4 +1,6 @@
 ﻿using System;
+using UnitsNet;
+using UnitsNet.Units;
 
 namespace HealthParse.Standard.Settings
 {
@@ -18,7 +20,43 @@ namespace HealthParse.Standard.Settings
             {
                 return CoerceBool(value);
             }
+            if (targetType == typeof(LengthUnit))
+            {
+                return CoerceLengthUnit((string)value);
+            }
+            if (targetType == typeof(DurationUnit))
+            {
+                return CoerceDuration((string)value);
+            }
             return CoerceString(value);
+        }
+
+        private static DurationUnit CoerceDuration(string value)
+        {
+            try
+            {
+                return Duration.ParseUnit(value);
+            }
+            catch (Exception)
+            {
+                return Enum.TryParse(value, true, out DurationUnit unit)
+                    ? unit
+                    : DurationUnit.Minute;
+            }
+        }
+
+        private static LengthUnit CoerceLengthUnit(string value)
+        {
+            try
+            {
+                return Length.ParseUnit(value);
+            }
+            catch (Exception)
+            {
+                return Enum.TryParse(value, true, out LengthUnit unit)
+                    ? unit
+                    : LengthUnit.Mile;
+            }
         }
 
         private static int CoerceInt32(object value)

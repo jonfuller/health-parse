@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 
@@ -22,6 +23,10 @@ namespace HealthParse.Standard.Health.Sheets
             return GetStepsByDay()
                 .Select(s => new{Date = s.Date.ToDateTimeUnspecified(), s.Steps});
         }
+
+        bool ISheetBuilder.HasHeaders => false;
+
+        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
 
         IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummary()
         {

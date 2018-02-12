@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 
@@ -27,6 +28,10 @@ namespace HealthParse.Standard.Health.Sheets
                     unit = r.Raw.Attribute("unit").Value
                 });
         }
+
+        bool ISheetBuilder.HasHeaders => false;
+
+        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
 
         IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummary()
         {

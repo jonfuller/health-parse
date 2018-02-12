@@ -44,7 +44,7 @@ namespace HealthParse.Standard.Health
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
             var workouts = export.Descendants("Workout")
-                .Select(Workout.FromXElement)
+                .Select(WorkoutParser.FromXElement)
                 .GroupBy(r => r.WorkoutType)
                 .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
@@ -52,7 +52,7 @@ namespace HealthParse.Standard.Health
             var utc = DateTimeZone.Utc;
             var zone = edt;
             var stepBuilder = new StepBuilder(records, zone);
-            var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone);
+            var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone, settings);
             var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone);
             var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone);
             var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone);
@@ -128,7 +128,10 @@ namespace HealthParse.Standard.Health
                 if (keepEmptySheets || sheetData.Any())
                 {
                     var sheet = workbook.Worksheets.Add(s.sheetName);
-                    sheet.WriteData(sheetData, omitEmptyColumns: s.omitEmptyColumns);
+                    sheet.WriteData(
+                        sheetData,
+                        omitEmptyColumns: s.omitEmptyColumns,
+                        headers: s.builder.HasHeaders ? s.builder.Headers : null);
                 }
             });
 

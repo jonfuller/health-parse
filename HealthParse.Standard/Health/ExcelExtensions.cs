@@ -11,11 +11,26 @@ namespace HealthParse.Standard.Health
         {
             {typeof(DateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" },
         };
-        public static void WriteData(this ExcelWorksheet target, IEnumerable<object> rows, bool headersIncluded = false, bool addInferredHeaders = true, bool omitEmptyColumns = true)
+        public static void WriteData(this ExcelWorksheet target, IEnumerable<object> dataRows, bool addInferredHeaders = true, bool omitEmptyColumns = true, IEnumerable<string> headers = null)
         {
-            var hasHeaders = headersIncluded || addInferredHeaders;
+            var rows = dataRows.ToList();
+            var hasHeaders = false;
+            if (headers != null)
+            {
+                hasHeaders = true;
+                headers = headers;
+            }else if(addInferredHeaders && rows.Any())
+            {
+                hasHeaders = true;
+                headers = GetPropHeaders(rows.First());
+            }
+            else
+            {
+                hasHeaders = false;
+                headers = null;
+            }
 
-            GetLines(rows, headersIncluded, addInferredHeaders)
+            GetLines(rows, headers, hasHeaders)
                 .SelectMany((row, rowNum) => row.Select((value, columnNum) => new { value, rowNum, columnNum }))
                 .ToList()
                 .ForEach(item =>
@@ -33,6 +48,13 @@ namespace HealthParse.Standard.Health
             if (omitEmptyColumns) OmitEmptyColumns(target, hasHeaders);
         }
 
+        private static IEnumerable<string> GetPropHeaders(object protoType)
+        {
+            var props = protoType.GetType().GetProperties();
+
+            return props.Select(prop => prop.Name);
+        }
+
         private static void OmitEmptyColumns(ExcelWorksheet sheet, bool hasHeaders)
         {
             Enumerable.Range(1, sheet.Dimension.Columns)
@@ -45,22 +67,20 @@ namespace HealthParse.Standard.Health
                 .ForEach(sheet.DeleteColumn);
         }
 
-        private static IEnumerable<IEnumerable<object>> GetLines(IEnumerable<object> rows, bool headersIncluded, bool addInferredHeaders)
+        private static IEnumerable<IEnumerable<object>> GetLines(IList<object> rows, IEnumerable<string> headers, bool hasHeaders)
         {
-            var rowsList = rows.ToList();
-            if (!rowsList.Any())
+            if (!rows.Any())
             {
                 yield break;
             }
 
-            var first = rowsList.First();
-            var props = first.GetType().GetProperties();
-
-            if (!headersIncluded && addInferredHeaders)
+            if (hasHeaders)
             {
-                yield return props.Select(prop => prop.Name);
+                yield return headers;
             }
-            foreach (var row in rowsList)
+
+            var props = rows.First().GetType().GetProperties();
+            foreach (var row in rows)
             {
                 yield return props.Select(prop => prop.GetValue(row));
             }

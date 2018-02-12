@@ -103,5 +103,9 @@ namespace HealthParse.Standard.Health.Sheets
 
             return data;
         }
+
+        bool ISheetBuilder.HasHeaders => false;
+
+        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
     }
 }

@@ -10,9 +10,7 @@ namespace HealthParse.Standard.Health.Sheets
             {
                 date = r.StartDate.InZone(zone),
                 duration = r.Duration,
-                durationUnit = r.DurationUnit,
-                distance = r.TotalDistance,
-                unit = r.TotalDistanceUnit,
+                distance = r.Distance,
             })
         {
         }

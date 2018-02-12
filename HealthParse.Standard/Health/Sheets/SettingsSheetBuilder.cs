@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HealthParse.Standard.Health.Sheets
@@ -22,5 +23,9 @@ namespace HealthParse.Standard.Health.Sheets
                     setting.Description
                 });
         }
+
+        bool ISheetBuilder.HasHeaders => false;
+
+        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
     }
 }

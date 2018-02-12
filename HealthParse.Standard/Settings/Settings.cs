@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnitsNet.Units;
 
 namespace HealthParse.Standard.Settings
 {
@@ -52,6 +53,12 @@ namespace HealthParse.Standard.Settings
 
         [Settings(Name = "UseConstantNameForPreviousMonthlySummarySheet", Description = "The previous month's sheet name will be 'Month Summary - Previous' instead of 'Month Summary - yyyy - mm'. This enables advanced usage in coordination with custom sheets (e.g. custom reporting for the previous month).", DefaultValue = false)]
         public bool UseConstantNameForPreviousMonthlySummarySheet { get; set; }
+
+        [Settings(Name = "DistanceUnit", Description = "The unit to use report distances in.", DefaultValue = LengthUnit.Mile)]
+        public LengthUnit DistanceUnit { get; set; }
+
+        [Settings(Name = "DurationUnit", Description = "The unit to use report time durations in.", DefaultValue = DurationUnit.Minute)]
+        public DurationUnit DurationUnit { get; set; }
 
         public void SetValue(string settingName, object value)
         {

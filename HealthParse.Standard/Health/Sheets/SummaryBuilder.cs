@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 
@@ -18,6 +19,8 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly ISheetBuilder<DistanceCyclingBuilder.CyclingItem> _distanceCyclingBuilder;
         private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
         private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
+        private bool _hasHeaders;
+        private IEnumerable<string> _headers;
 
         public SummaryBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records,
             IReadOnlyDictionary<string, IEnumerable<Workout>> workouts,
@@ -112,5 +115,9 @@ namespace HealthParse.Standard.Health.Sheets
 
             return dataByMonth;
         }
+
+        bool ISheetBuilder.HasHeaders => false;
+
+        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
     }
 }
