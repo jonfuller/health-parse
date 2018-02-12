@@ -17,6 +17,7 @@
             public const string Cycling = "HKWorkoutActivityTypeCycling";
             public const string Running = "HKWorkoutActivityTypeRunning";
             public const string Walking = "HKWorkoutActivityTypeWalking";
+            public const string Hiit = "HKWorkoutActivityTypeHighIntensityIntervalTraining";
         }
     }
 }

@@ -56,6 +56,7 @@ namespace HealthParse.Standard.Health
             var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone);
             var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone);
             var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone);
+            var hiitBuilder = new HiitBuilder(workouts, zone);
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone);
             var massBuilder = new MassBuilder(records, zone);
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
@@ -67,6 +68,7 @@ namespace HealthParse.Standard.Health
                 runningWorkoutBuilder,
                 walkingWorkoutBuilder,
                 strengthTrainingBuilder,
+                hiitBuilder,
                 distanceCyclingBuilder,
                 massBuilder,
                 bodyFatBuilder);
@@ -96,6 +98,7 @@ namespace HealthParse.Standard.Health
                         runningWorkoutBuilder,
                         walkingWorkoutBuilder,
                         strengthTrainingBuilder,
+                        hiitBuilder,
                         distanceCyclingBuilder,
                         massBuilder,
                         bodyFatBuilder),
@@ -112,6 +115,7 @@ namespace HealthParse.Standard.Health
                 .Concat(new { builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)hiitBuilder, sheetName = "HIIT", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)settingsBuilder, sheetName = "Settings", omitEmptyColumns = true });

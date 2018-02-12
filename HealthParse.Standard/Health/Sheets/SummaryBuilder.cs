@@ -14,6 +14,7 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _walkingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _strengthBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _hiitBuilder;
         private readonly ISheetBuilder<DistanceCyclingBuilder.CyclingItem> _distanceCyclingBuilder;
         private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
         private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
@@ -26,6 +27,7 @@ namespace HealthParse.Standard.Health.Sheets
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> walkingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> strengthBuilder,
+            ISheetBuilder<WorkoutBuilder.WorkoutItem> hiitBuilder,
             ISheetBuilder<DistanceCyclingBuilder.CyclingItem> distanceCyclingBuilder,
             ISheetBuilder<MassBuilder.MassItem> massBuilder,
             ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> bodyFatBuilder)
@@ -39,6 +41,7 @@ namespace HealthParse.Standard.Health.Sheets
             _runningBuilder = runningBuilder;
             _walkingBuilder = walkingBuilder;
             _strengthBuilder = strengthBuilder;
+            _hiitBuilder = hiitBuilder;
             _distanceCyclingBuilder = distanceCyclingBuilder;
             _massBuilder = massBuilder;
             _bodyFatBuilder = bodyFatBuilder;
@@ -64,6 +67,7 @@ namespace HealthParse.Standard.Health.Sheets
             var cyclingWorkouts = _cyclingBuilder.BuildSummary();
             var cyclingDistances = _distanceCyclingBuilder.BuildSummary();
             var stregthTrainings = _strengthBuilder.BuildSummary();
+            var hiits = _hiitBuilder.BuildSummary();
             var runnings = _runningBuilder.BuildSummary();
             var walkings = _walkingBuilder.BuildSummary();
             var masses = _massBuilder.BuildSummary();
@@ -74,6 +78,7 @@ namespace HealthParse.Standard.Health.Sheets
                       join wCycling in cyclingWorkouts on month equals wCycling.Date into tmpWCycling
                       join rCycling in cyclingDistances on month equals rCycling.Date into tmpRCycling
                       join strength in stregthTrainings on month equals strength.Date into tmpStrength
+                      join hiit in hiits on month equals hiit.Date into tmpHiit
                       join running in runnings on month equals running.Date into tmpRunning
                       join walking in walkings on month equals walking.Date into tmpWalking
                       join mass in masses on month equals mass.Date into tmpMasses
@@ -82,6 +87,7 @@ namespace HealthParse.Standard.Health.Sheets
                       from wCycling in tmpWCycling.DefaultIfEmpty()
                       from rCycling in tmpRCycling.DefaultIfEmpty()
                       from strength in tmpStrength.DefaultIfEmpty()
+                      from hiit in tmpHiit.DefaultIfEmpty()
                       from running in tmpRunning.DefaultIfEmpty()
                       from walking in tmpWalking.DefaultIfEmpty()
                       from mass in tmpMasses.DefaultIfEmpty()
@@ -97,6 +103,7 @@ namespace HealthParse.Standard.Health.Sheets
                           cyclingWorkoutMinutes = wCycling?.Duration,
                           distanceCyclingDistance = rCycling?.Distance,
                           strengthMinutes = strength?.Duration,
+                          hiitMinutes = hiit?.Duration,
                           runningDistance = running?.Distance,
                           runningDuration = running?.Duration,
                           walkingDistance = walking?.Distance,
