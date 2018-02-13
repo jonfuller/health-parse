@@ -12,7 +12,9 @@ namespace HealthParse.Standard.Health.Sheets
                 duration = r.Duration.As(settings.DurationUnit),
                 distance = r.Distance.As(settings.DistanceUnit),
             },
-            "Date", $"Duration ({settings.DurationUnit})", $"Distance ({settings.DistanceUnit})")
+            ColumnNames.Date(),
+            ColumnNames.Duration(settings.DurationUnit),
+            ColumnNames.Distance(settings.DistanceUnit))
         {
         }
     }

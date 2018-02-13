@@ -60,6 +60,9 @@ namespace HealthParse.Standard.Settings
         [Settings(Name = "DurationUnit", Description = "The unit to use report time durations in.", DefaultValue = DurationUnit.Minute)]
         public DurationUnit DurationUnit { get; set; }
 
+        [Settings(Name = "WeightUnit", Description = "The unit to use report weight in.", DefaultValue = MassUnit.Pound)]
+        public MassUnit WeightUnit { get; set; }
+
         public void SetValue(string settingName, object value)
         {
             var settingProp = SettingProps.FirstOrDefault(x => x.Item2.Name == settingName);

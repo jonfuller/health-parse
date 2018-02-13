@@ -24,9 +24,13 @@ namespace HealthParse.Standard.Health.Sheets
                 .Select(s => new{Date = s.Date.ToDateTimeUnspecified(), s.Steps});
         }
 
-        bool ISheetBuilder.HasHeaders => false;
+        bool ISheetBuilder.HasHeaders => true;
 
-        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
+        IEnumerable<string> ISheetBuilder.Headers => new[]
+        {
+            ColumnNames.Date(),
+            ColumnNames.Steps(),
+        };
 
         IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummary()
         {

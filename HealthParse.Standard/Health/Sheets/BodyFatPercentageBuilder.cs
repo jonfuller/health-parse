@@ -24,9 +24,13 @@ namespace HealthParse.Standard.Health.Sheets
                 .OrderByDescending(r => r.Date.ToInstant());
         }
 
-        bool ISheetBuilder.HasHeaders => false;
+        bool ISheetBuilder.HasHeaders => true;
 
-        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
+        IEnumerable<string> ISheetBuilder.Headers => new[]
+        {
+            ColumnNames.Date(),
+            ColumnNames.BodyFatPercentage(),
+        };
 
         IEnumerable<BodyFatItem> ISheetBuilder<BodyFatItem>.BuildSummary()
         {

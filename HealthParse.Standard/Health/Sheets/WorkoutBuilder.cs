@@ -37,7 +37,7 @@ namespace HealthParse.Standard.Health.Sheets
         {
             return _workouts
                 .GroupBy(s => new { s.StartDate.InZone(_zone).Date.Year, s.StartDate.InZone(_zone).Date.Month })
-                .Select(x => new WorkoutItem(x.Key.Year, x.Key.Month, x.SumLength(c => c.Distance), x.SumDuration(c => c.Duration)));
+                .Select(x => new WorkoutItem(x.Key.Year, x.Key.Month, x.Sum(c => c.Distance), x.Sum(c => c.Duration)));
         }
 
         IEnumerable<WorkoutItem> ISheetBuilder<WorkoutItem>.BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
@@ -45,7 +45,7 @@ namespace HealthParse.Standard.Health.Sheets
             return _workouts
                 .Where(x => dateRange.Includes(x.StartDate.InZone(_zone), Clusivity.Inclusive))
                 .GroupBy(x => x.StartDate.InZone(_zone).Date)
-                .Select(x => new WorkoutItem(x.Key, x.SumLength(c => c.Distance), x.SumDuration(c => c.Duration)))
+                .Select(x => new WorkoutItem(x.Key, x.Sum(c => c.Distance), x.Sum(c => c.Duration)))
                 .OrderByDescending(x => x.Date);
         }
 
@@ -66,18 +66,6 @@ namespace HealthParse.Standard.Health.Sheets
 
             public Length Distance { get; }
             public UNDuration Duration { get; }
-        }
-    }
-
-    public static class Ext
-    {
-        public static Length SumLength<T>(this IEnumerable<T> target, Func<T, Length> selector)
-        {
-            return target.Aggregate(Length.Zero, (current, item) => current + selector(item));
-        }
-        public static UNDuration SumDuration<T>(this IEnumerable<T> target, Func<T, UNDuration> selector)
-        {
-            return target.Aggregate(UNDuration.Zero, (current, item) => current + selector(item));
         }
     }
 }

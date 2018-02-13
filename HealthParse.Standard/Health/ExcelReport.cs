@@ -53,16 +53,16 @@ namespace HealthParse.Standard.Health
             var zone = edt;
             var stepBuilder = new StepBuilder(records, zone);
             var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone, settings);
-            var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone);
-            var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone);
-            var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone);
-            var hiitBuilder = new HiitBuilder(workouts, zone);
-            var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone);
-            var massBuilder = new MassBuilder(records, zone);
+            var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone, settings);
+            var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone, settings);
+            var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone, settings);
+            var hiitBuilder = new HiitBuilder(workouts, zone, settings);
+            var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone, settings);
+            var massBuilder = new MassBuilder(records, zone, settings); // TODO unit
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
-            var summaryBuilder = new SummaryBuilder(records, workouts, zone,
+            var summaryBuilder = new SummaryBuilder(records, workouts, zone, settings,
                 stepBuilder,
                 cyclingWorkoutBuilder,
                 runningWorkoutBuilder,
@@ -93,6 +93,7 @@ namespace HealthParse.Standard.Health
                         builder = (ISheetBuilder)new MonthSummaryBuilder(m.Year,
                         m.Month,
                         zone,
+                        settings,
                         stepBuilder,
                         cyclingWorkoutBuilder,
                         runningWorkoutBuilder,

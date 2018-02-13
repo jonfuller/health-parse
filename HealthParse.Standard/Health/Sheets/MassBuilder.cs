@@ -1,38 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
+using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets
 {
     public class MassBuilder : ISheetBuilder<MassBuilder.MassItem>
     {
         private readonly DateTimeZone _zone;
-        private readonly IEnumerable<Record> _records;
+        private readonly Settings.Settings _settings;
+        private readonly IEnumerable<Weight> _records;
 
-        public MassBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone)
+        public MassBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone, Settings.Settings settings)
         {
             _zone = zone;
+            _settings = settings;
             _records = records.ContainsKey(HKConstants.Records.BodyMass)
-                ? records[HKConstants.Records.BodyMass]
-                : Enumerable.Empty<Record>();
+                ? records[HKConstants.Records.BodyMass].Select(Weight.FromRecord)
+                : Enumerable.Empty<Weight>();
         }
+
         IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
             return _records
-                .Select(r => new {Date = r.StartDate.InZone(_zone).ToDateTimeUnspecified(), Mass = r.Value.SafeParse(0) })
+                .Select(r => new {Date = r.StartDate.InZone(_zone).ToDateTimeUnspecified(), Mass = r.Value.As(_settings.WeightUnit)})
                 .OrderByDescending(r => r.Date);
         }
 
-        bool ISheetBuilder.HasHeaders => false;
+        bool ISheetBuilder.HasHeaders => true;
 
-        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
+        IEnumerable<string> ISheetBuilder.Headers => new []
+        {
+            ColumnNames.Date(),
+            ColumnNames.Weight(_settings.WeightUnit),
+        };
 
         IEnumerable<MassItem> ISheetBuilder<MassItem>.BuildSummary()
         {
             return _records
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
-                .Select(g => new{date = g.Key, mass = g.Min(x => x.Value.SafeParse(0))})
+                .Select(g => new{date = g.Key, mass = g.Min(x => x.Value)})
                 .GroupBy(s => new { s.date.Year, s.date.Month })
                 .Select(x => new MassItem(x.Key.Year, x.Key.Month, x.Average(c => c.mass)));
         }
@@ -42,20 +49,34 @@ namespace HealthParse.Standard.Health.Sheets
             return _records
                 .Where(r => dateRange.Includes(r.StartDate.InZone(_zone), Clusivity.Inclusive))
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
-                .Select(g => new { date = g.Key, mass = g.Min(x => x.Value.SafeParse(0)) })
+                .Select(g => new { date = g.Key, mass = g.Min(x => x.Value) })
                 .Select(x => new MassItem(x.date, x.mass));
+        }
+
+        private class Weight
+        {
+            public Instant StartDate { get; private set; }
+            public Mass Value { get; private set; }
+            public static Weight FromRecord(Record record)
+            {
+                return new Weight
+                {
+                    StartDate = record.StartDate,
+                    Value = RecordParser.Weight(record)
+                };
+            }
         }
 
         public class MassItem : DatedItem
         {
-            public double Mass { get; }
+            public Mass Mass { get; }
 
-            public MassItem(int year, int month, double averageMass) : base(year, month)
+            public MassItem(int year, int month, Mass averageMass) : base(year, month)
             {
                 Mass = averageMass;
             }
 
-            public MassItem(LocalDate date, double mass) : base(date)
+            public MassItem(LocalDate date, Mass mass) : base(date)
             {
                 Mass = mass;
             }

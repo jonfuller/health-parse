@@ -10,6 +10,7 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly int _targetYear;
         private readonly int _targetMonth;
         private readonly DateTimeZone _zone;
+        private readonly Settings.Settings _settings;
         private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
@@ -20,7 +21,7 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
         private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
 
-        public MonthSummaryBuilder(int targetYear, int targetMonth, DateTimeZone zone,
+        public MonthSummaryBuilder(int targetYear, int targetMonth, DateTimeZone zone, Settings.Settings settings,
             ISheetBuilder<StepBuilder.StepItem> stepBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
@@ -34,6 +35,7 @@ namespace HealthParse.Standard.Health.Sheets
             _targetYear = targetYear;
             _targetMonth = targetMonth;
             _zone = zone;
+            _settings = settings;
 
             _stepBuilder = stepBuilder;
             _cyclingBuilder = cyclingBuilder;
@@ -88,24 +90,39 @@ namespace HealthParse.Standard.Health.Sheets
                 {
                     day = day.ToDateTimeUnspecified(),
                     step?.Steps,
-                    mass?.Mass,
+                    mass = mass?.Mass.As(_settings.WeightUnit),
                     bodyFat?.BodyFatPercentage,
-                    cyclingWorkoutDistance = wCycling?.Distance,
-                    cyclingWorkoutMinutes = wCycling?.Duration,
-                    distanceCyclingDistance = rCycling?.Distance,
-                    strengthMinutes = strength?.Duration,
-                    hiitMinutes = hiit?.Duration,
-                    runningDistance = running?.Distance,
-                    runningDuration = running?.Duration,
-                    walkingDistance = walking?.Distance,
-                    walkingDuration = walking?.Duration,
+                    cyclingWorkoutDistance = wCycling?.Distance.As(_settings.DistanceUnit),
+                    cyclingWorkoutMinutes = wCycling?.Duration.As(_settings.DurationUnit),
+                    distanceCyclingDistance = rCycling?.Distance.As(_settings.DistanceUnit),
+                    strengthMinutes = strength?.Duration.As(_settings.DurationUnit),
+                    hiitMinutes = hiit?.Duration.As(_settings.DurationUnit),
+                    runningDistance = running?.Distance.As(_settings.DistanceUnit),
+                    runningDuration = running?.Duration.As(_settings.DurationUnit),
+                    walkingDistance = walking?.Distance.As(_settings.DistanceUnit),
+                    walkingDuration = walking?.Duration.As(_settings.DurationUnit),
                 };
 
             return data;
         }
 
-        bool ISheetBuilder.HasHeaders => false;
+        bool ISheetBuilder.HasHeaders => true;
 
-        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
+        IEnumerable<string> ISheetBuilder.Headers => new []
+        {
+            ColumnNames.Date(),
+            ColumnNames.Steps(),
+            ColumnNames.Weight(_settings.WeightUnit),
+            ColumnNames.BodyFatPercentage(),
+            ColumnNames.Workout.Cycling.Distance(_settings.DistanceUnit),
+            ColumnNames.Workout.Cycling.Duration(_settings.DurationUnit),
+            ColumnNames.CyclingDistance(_settings.DistanceUnit),
+            ColumnNames.Workout.StrengthTraining.Duration(_settings.DurationUnit),
+            ColumnNames.Workout.Hiit.Duration(_settings.DurationUnit),
+            ColumnNames.Workout.Running.Distance(_settings.DistanceUnit),
+            ColumnNames.Workout.Running.Duration(_settings.DurationUnit),
+            ColumnNames.Workout.Walking.Distance(_settings.DistanceUnit),
+            ColumnNames.Workout.Walking.Duration(_settings.DurationUnit),
+        };
     }
 }
