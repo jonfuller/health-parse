@@ -38,15 +38,8 @@ namespace HealthParse.Standard.Health
 
         public static void BuildReport(XDocument export, ExcelWorkbook workbook, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
-            var records = export.Descendants("Record")
-                .Select(Record.FromXElement)
-                .GroupBy(r => r.Type)
-                .ToDictionary(g => g.Key, g => g.AsEnumerable());
-
-            var workouts = export.Descendants("Workout")
-                .Select(WorkoutParser.FromXElement)
-                .GroupBy(r => r.WorkoutType)
-                .ToDictionary(g => g.Key, g => g.AsEnumerable());
+            var records = export.Descendants("Record").Select(Record.FromXElement).ToList();
+            var workouts = export.Descendants("Workout").Select(WorkoutParser.FromXElement).ToList();
 
             var edt = DateTimeZone.ForOffset(Offset.FromHours(-5));
             var utc = DateTimeZone.Utc;

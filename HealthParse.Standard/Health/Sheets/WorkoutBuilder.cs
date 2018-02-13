@@ -15,11 +15,9 @@ namespace HealthParse.Standard.Health.Sheets
         public IEnumerable<string> Headers { get; }
         public bool HasHeaders { get; }
 
-        protected WorkoutBuilder(IReadOnlyDictionary<string, IEnumerable<Workout>> workouts, string workoutKey, DateTimeZone zone, Func<Workout, object> selector, params string[] columnNames)
+        protected WorkoutBuilder(IEnumerable<Workout> workouts, string workoutKey, DateTimeZone zone, Func<Workout, object> selector, params string[] columnNames)
         {
-            _workouts = workouts.ContainsKey(workoutKey)
-                ? workouts[workoutKey]
-                : Enumerable.Empty<Workout>();
+            _workouts = workouts.Where(w => w.WorkoutType == workoutKey);
             _zone = zone;
             _selector = selector;
             HasHeaders = columnNames.Any();

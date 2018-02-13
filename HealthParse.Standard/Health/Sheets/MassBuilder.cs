@@ -11,13 +11,14 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly Settings.Settings _settings;
         private readonly IEnumerable<Weight> _records;
 
-        public MassBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone, Settings.Settings settings)
+        public MassBuilder(IEnumerable<Record> records, DateTimeZone zone, Settings.Settings settings)
         {
             _zone = zone;
             _settings = settings;
-            _records = records.ContainsKey(HKConstants.Records.BodyMass)
-                ? records[HKConstants.Records.BodyMass].Select(Weight.FromRecord)
-                : Enumerable.Empty<Weight>();
+            _records = records
+                .Where(r => r.Type == HKConstants.Records.BodyMass)
+                .Select(Weight.FromRecord)
+                .ToList();
         }
 
         IEnumerable<object> ISheetBuilder.BuildRawSheet()

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 
@@ -10,12 +9,10 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly DateTimeZone _zone;
         private readonly IEnumerable<Record> _records;
 
-        public StepBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone)
+        public StepBuilder(IEnumerable<Record> records, DateTimeZone zone)
         {
             _zone = zone;
-            _records = records.ContainsKey(HKConstants.Records.StepCount)
-                ? records[HKConstants.Records.StepCount]
-                : Enumerable.Empty<Record>();
+            _records = records.Where(r => r.Type == HKConstants.Records.StepCount);
         }
 
         IEnumerable<object> ISheetBuilder.BuildRawSheet()

@@ -11,13 +11,14 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly Settings.Settings _settings;
         private readonly IEnumerable<DistanceCycling> _records;
 
-        public DistanceCyclingBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone, Settings.Settings settings)
+        public DistanceCyclingBuilder(IEnumerable<Record> records, DateTimeZone zone, Settings.Settings settings)
         {
             _zone = zone;
             _settings = settings;
-            _records = records.ContainsKey(HKConstants.Records.DistanceCycling)
-                ? records[HKConstants.Records.DistanceCycling].Select(DistanceCycling.FromRecord)
-                : Enumerable.Empty<DistanceCycling>();
+            _records = records
+                .Where(r => r.Type == HKConstants.Records.DistanceCycling)
+                .Select(DistanceCycling.FromRecord)
+                .ToList();
         }
         IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {

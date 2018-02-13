@@ -5,7 +5,7 @@ namespace HealthParse.Standard.Health.Sheets
 {
     public class RunningWorkoutBuilder : WorkoutBuilder
     {
-        public RunningWorkoutBuilder(IReadOnlyDictionary<string, IEnumerable<Workout>> workouts, DateTimeZone zone, Settings.Settings settings)
+        public RunningWorkoutBuilder(IEnumerable<Workout> workouts, DateTimeZone zone, Settings.Settings settings)
             : base(workouts, HKConstants.Workouts.Running, zone, r => new
             {
                 date = r.StartDate.InZone(zone),

@@ -10,12 +10,12 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly DateTimeZone _zone;
         private readonly IEnumerable<Record> _records;
 
-        public BodyFatPercentageBuilder(IReadOnlyDictionary<string, IEnumerable<Record>> records, DateTimeZone zone)
+        public BodyFatPercentageBuilder(IEnumerable<Record> records, DateTimeZone zone)
         {
             _zone = zone;
-            _records = records.ContainsKey(HKConstants.Records.BodyFatPercentage)
-                ? records[HKConstants.Records.BodyFatPercentage]
-                : Enumerable.Empty<Record>();
+            _records = records
+                .Where(r => r.Type == HKConstants.Records.BodyFatPercentage)
+                .ToList();
         }
         IEnumerable<object> ISheetBuilder.BuildRawSheet()
         {
