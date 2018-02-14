@@ -63,6 +63,9 @@ namespace HealthParse.Standard.Settings
         [Settings(Name = "WeightUnit", Description = "The unit to use report weight in.", DefaultValue = MassUnit.Pound)]
         public MassUnit WeightUnit { get; set; }
 
+        [Settings(Name = "CustomSheetsPlacement", Description = "Location of custom sheets.", DefaultValue = CustomSheetsPlacement.Last)]
+        public CustomSheetsPlacement CustomSheetsPlacement { get; set; }
+
         public void SetValue(string settingName, object value)
         {
             var settingProp = SettingProps.FirstOrDefault(x => x.Item2.Name == settingName);

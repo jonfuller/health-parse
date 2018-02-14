@@ -28,7 +28,19 @@ namespace HealthParse.Standard.Settings
             {
                 return CoerceDuration((string)value);
             }
+            if (targetType == typeof(CustomSheetsPlacement))
+            {
+                return CoerceEnum((string) value, CustomSheetsPlacement.Last);
+            }
+
             return CoerceString(value);
+        }
+
+        private static TEnum CoerceEnum<TEnum>(string value, TEnum defaultValue) where TEnum : struct
+        {
+            return Enum.TryParse(value, out TEnum placement)
+                ? placement
+                : defaultValue;
         }
 
         private static DurationUnit CoerceDuration(string value)

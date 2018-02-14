@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using HealthParse.Standard.Health.Sheets;
+using HealthParse.Standard.Settings;
 using NodaTime;
 using OfficeOpenXml;
 
@@ -38,11 +39,11 @@ namespace HealthParse.Standard.Health
 
         public static void BuildReport(XDocument export, ExcelWorkbook workbook, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
+            var customSheetsList = customSheets.ToList();
             var records = export.Descendants("Record").Select(Record.FromXElement).ToList();
             var workouts = export.Descendants("Workout").Select(WorkoutParser.FromXElement).ToList();
 
             var edt = DateTimeZone.ForOffset(Offset.FromHours(-5));
-            var utc = DateTimeZone.Utc;
             var zone = edt;
             var stepBuilder = new StepBuilder(records, zone);
             var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone, settings);
@@ -51,7 +52,7 @@ namespace HealthParse.Standard.Health
             var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone, settings);
             var hiitBuilder = new HiitBuilder(workouts, zone, settings);
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone, settings);
-            var massBuilder = new MassBuilder(records, zone, settings); // TODO unit
+            var massBuilder = new MassBuilder(records, zone, settings);
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
@@ -99,9 +100,11 @@ namespace HealthParse.Standard.Health
                         sheetName,
                         omitEmptyColumns = settings.OmitEmptyColumnsOnMonthlySummary,
                     };
-                });
+                }).ToList();
 
-            var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = "Overall Summary", omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary} }
+
+            var summarySheetName = "Overall Summary";
+            var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = summarySheetName, omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary} }
                 .Concat(monthBuilders)
                 .Concat(new { builder = (ISheetBuilder)stepBuilder, sheetName = "Steps", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)massBuilder, sheetName = "Mass (Weight)", omitEmptyColumns = true })
@@ -129,9 +132,50 @@ namespace HealthParse.Standard.Health
                 }
             });
 
-            foreach (var customSheet in customSheets)
+            foreach (var customSheet in customSheetsList)
             {
                 workbook.Worksheets.Add(customSheet.Name, customSheet);
+            }
+
+            PlaceCustomSheets(
+                settings.CustomSheetsPlacement,
+                customSheetsList,
+                workbook.Worksheets,
+                summarySheetName,
+                monthBuilders.Select(b => b.sheetName).ToList());
+        }
+
+        private static void PlaceCustomSheets(CustomSheetsPlacement placement, IEnumerable<ExcelWorksheet> customSheets, ExcelWorksheets sheets, string summarySheetName, IList<string> monthSummaryNames)
+        {
+            switch (placement)
+            {
+                case CustomSheetsPlacement.AfterSummary:
+                    foreach (var customSheet in customSheets)
+                    {
+                        sheets.MoveAfter(customSheet.Name, summarySheetName);
+                    }
+                    break;
+                case CustomSheetsPlacement.AfterMonthlySummaries:
+                    if (monthSummaryNames.IsEmpty()) break;
+                    var lastMonth = monthSummaryNames.Last();
+
+                    foreach (var customSheet in customSheets)
+                    {
+                        sheets.MoveAfter(customSheet.Name, lastMonth);
+                    }
+
+                    break;
+                case CustomSheetsPlacement.First:
+                    foreach (var customSheet in customSheets)
+                    {
+                        sheets.MoveToStart(customSheet.Name);
+                    }
+
+                    break;
+                case CustomSheetsPlacement.Last:
+                default:
+                    // do nothing, they're already at the end
+                    break;
             }
         }
     }
