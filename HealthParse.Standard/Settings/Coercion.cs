@@ -28,6 +28,10 @@ namespace HealthParse.Standard.Settings
             {
                 return CoerceDuration((string)value);
             }
+            if (targetType == typeof(MassUnit))
+            {
+                return CoerceMass((string)value);
+            }
             if (targetType == typeof(CustomSheetsPlacement))
             {
                 return CoerceEnum((string) value, CustomSheetsPlacement.Last);
@@ -54,6 +58,20 @@ namespace HealthParse.Standard.Settings
                 return Enum.TryParse(value, true, out DurationUnit unit)
                     ? unit
                     : DurationUnit.Minute;
+            }
+        }
+
+        private static MassUnit CoerceMass(string value)
+        {
+            try
+            {
+                return Mass.ParseUnit(value);
+            }
+            catch (Exception)
+            {
+                return Enum.TryParse(value, true, out MassUnit unit)
+                    ? unit
+                    : MassUnit.Pound;
             }
         }
 
