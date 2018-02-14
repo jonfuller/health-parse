@@ -129,6 +129,7 @@ namespace HealthParse.Standard.Health
                         sheetData,
                         omitEmptyColumns: s.omitEmptyColumns,
                         headers: s.builder.HasHeaders ? s.builder.Headers : null);
+                    s.builder.Customize(sheet, workbook);
                 }
             });
 

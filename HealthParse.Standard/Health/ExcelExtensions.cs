@@ -7,6 +7,16 @@ namespace HealthParse.Standard.Health
 {
     public static class ExcelExtensions
     {
+        public static string Rangify(this string original)
+        {
+            return original
+                    .Replace(" ", "_")
+                    .Replace("-", "_")
+                    .Replace("__", "_")
+                    .Replace("__", "_")
+                ;
+        }
+
         private static readonly Dictionary<Type, Action<ExcelRange>> Formatters = new Dictionary<Type, Action<ExcelRange>>()
         {
             {typeof(DateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" },

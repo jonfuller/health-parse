@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
+using OfficeOpenXml;
 using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets
@@ -29,6 +30,10 @@ namespace HealthParse.Standard.Health.Sheets
                     Date = r.StartDate.InZone(_zone),
                     Distance = r.Distance.As(_settings.DistanceUnit),
                 });
+        }
+
+        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        {
         }
 
         bool ISheetBuilder.HasHeaders => true;

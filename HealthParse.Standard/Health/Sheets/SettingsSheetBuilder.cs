@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -12,6 +13,7 @@ namespace HealthParse.Standard.Health.Sheets
         {
             _settings = settings;
         }
+
         public IEnumerable<object> BuildRawSheet()
         {
             return _settings
@@ -22,6 +24,10 @@ namespace HealthParse.Standard.Health.Sheets
                     setting.DefaultValue,
                     setting.Description
                 });
+        }
+
+        void ISheetBuilder.Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook)
+        {
         }
 
         bool ISheetBuilder.HasHeaders => false;

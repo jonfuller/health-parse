@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
+using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -22,6 +23,10 @@ namespace HealthParse.Standard.Health.Sheets
             return _records
                 .Select(r => new { Date = r.StartDate.InZone(_zone), BodyFatPct = r.Value.SafeParse(0) })
                 .OrderByDescending(r => r.Date.ToInstant());
+        }
+
+        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        {
         }
 
         bool ISheetBuilder.HasHeaders => true;

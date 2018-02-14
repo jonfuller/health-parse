@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
+using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -19,6 +20,10 @@ namespace HealthParse.Standard.Health.Sheets
         {
             return GetStepsByDay()
                 .Select(s => new{Date = s.Date.ToDateTimeUnspecified(), s.Steps});
+        }
+
+        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        {
         }
 
         bool ISheetBuilder.HasHeaders => true;

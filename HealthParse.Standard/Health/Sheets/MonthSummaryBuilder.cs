@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
+using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -104,6 +105,22 @@ namespace HealthParse.Standard.Health.Sheets
                 };
 
             return data;
+        }
+
+        void ISheetBuilder.Customize(ExcelWorksheet sheet, ExcelWorkbook workbook)
+        {
+            workbook.Names.Add($"{sheet.Name.Rangify()}_steps", sheet.Cells["B:B"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_weight", sheet.Cells["C:C"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_bodyfatpct", sheet.Cells["D:D"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_cyclingdistance", sheet.Cells["E:E"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_cyclingduration", sheet.Cells["F:F"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_distancecyclingdistance", sheet.Cells["G:G"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_strengthtrainingduration", sheet.Cells["H:H"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_hittduration", sheet.Cells["I:I"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_runningdistance", sheet.Cells["J:J"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_runningduration", sheet.Cells["K:K"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_walkingdistance", sheet.Cells["L:L"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_walkingduration", sheet.Cells["M:M"]);
         }
 
         bool ISheetBuilder.HasHeaders => true;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using NodaTime;
+using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -8,6 +9,8 @@ namespace HealthParse.Standard.Health.Sheets
         IEnumerable<object> BuildRawSheet();
         bool HasHeaders { get; }
         IEnumerable<string> Headers { get; }
+
+        void Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook);
     }
     public interface ISheetBuilder<out TItem> : ISheetBuilder where TItem : DatedItem
     {

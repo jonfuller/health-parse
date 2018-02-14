@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
+using OfficeOpenXml;
 using UnitsNet;
 using UNDuration = UnitsNet.Duration;
 
@@ -22,6 +23,10 @@ namespace HealthParse.Standard.Health.Sheets
             _selector = selector;
             HasHeaders = columnNames.Any();
             Headers = columnNames ?? new string[0];
+        }
+
+        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        {
         }
 
         IEnumerable<object> ISheetBuilder.BuildRawSheet()
