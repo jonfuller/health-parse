@@ -20,16 +20,23 @@ namespace HealthParse.Standard.Mail
             });
         }
 
+        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from,
+            ISettingsStore settingsStore)
+        {
+            return ProcessEmail(originalEmail, from, settingsStore, new TelemetryClient());
+        }
+
         public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, ISettingsStore settingsStore, TelemetryClient telemetry)
         {
             var userId = originalEmail.From.Mailboxes.First().HashedEmail();
             var settings = settingsStore.GetCurrentSettings(userId);
-            var customSheets = settingsStore.GetCustomSheets(userId);
+            var customSheets = settingsStore.GetCustomSheets(userId).ToList();
 
             var attachments = originalEmail.LoadAttachments().ToList();
             var handlers = new IMailProcessor[]
             {
                 new AppleHealthAttachmentMailProcessor(from, settings, customSheets),
+                new AppleHealthGoogleDriveMailProcessor(from, settings, customSheets),
                 new SettingsUpdateMailProcessor(from, settingsStore),
                 new HelpMailProcessor(from), // <-- catch all
             };
