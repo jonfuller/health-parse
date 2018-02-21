@@ -20,7 +20,7 @@ namespace HealthParse.Standard.Health.Sheets
                 .Select((setting, i) => new
                 {
                     setting.Name,
-                    setting.Value,
+                    Value = setting.Value.ToString(),
                     setting.DefaultValue,
                     setting.Description
                 });

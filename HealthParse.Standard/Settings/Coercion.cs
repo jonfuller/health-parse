@@ -22,15 +22,15 @@ namespace HealthParse.Standard.Settings
             }
             if (targetType == typeof(LengthUnit))
             {
-                return CoerceLengthUnit((string)value);
+                return CoerceLengthUnit(value);
             }
             if (targetType == typeof(DurationUnit))
             {
-                return CoerceDuration((string)value);
+                return CoerceDuration(value);
             }
             if (targetType == typeof(MassUnit))
             {
-                return CoerceMass((string)value);
+                return CoerceMass(value);
             }
             if (targetType == typeof(CustomSheetsPlacement))
             {
@@ -47,43 +47,43 @@ namespace HealthParse.Standard.Settings
                 : defaultValue;
         }
 
-        private static DurationUnit CoerceDuration(string value)
+        private static DurationUnit CoerceDuration(object value)
         {
             try
             {
-                return Duration.ParseUnit(value);
+                return Duration.ParseUnit(value.ToString());
             }
             catch (Exception)
             {
-                return Enum.TryParse(value, true, out DurationUnit unit)
+                return Enum.TryParse(value.ToString(), true, out DurationUnit unit)
                     ? unit
                     : DurationUnit.Minute;
             }
         }
 
-        private static MassUnit CoerceMass(string value)
+        private static MassUnit CoerceMass(object value)
         {
             try
             {
-                return Mass.ParseUnit(value);
+                return Mass.ParseUnit(value.ToString());
             }
             catch (Exception)
             {
-                return Enum.TryParse(value, true, out MassUnit unit)
+                return Enum.TryParse(value.ToString(), true, out MassUnit unit)
                     ? unit
                     : MassUnit.Pound;
             }
         }
 
-        private static LengthUnit CoerceLengthUnit(string value)
+        private static LengthUnit CoerceLengthUnit(object value)
         {
             try
             {
-                return Length.ParseUnit(value);
+                return Length.ParseUnit(value.ToString());
             }
             catch (Exception)
             {
-                return Enum.TryParse(value, true, out LengthUnit unit)
+                return Enum.TryParse(value.ToString(), true, out LengthUnit unit)
                     ? unit
                     : LengthUnit.Mile;
             }
