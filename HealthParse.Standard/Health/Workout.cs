@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using NodaTime;
+﻿using NodaTime;
 using UnitsNet;
 using UNDuration = UnitsNet.Duration;
 
@@ -15,6 +14,5 @@ namespace HealthParse.Standard.Health
         public Length Distance { get; set; }
         public Energy Energy { get; set; }
         public string Device { get; set; }
-        public XElement Raw { get; set; }
     }
 }

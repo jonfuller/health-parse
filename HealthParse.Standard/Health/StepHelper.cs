@@ -31,19 +31,16 @@ namespace HealthParse.Standard.Health
 
         private static Record PickStepRecordToReject(Record a, Record b)
         {
-            var aSource = a.Raw.Attribute("sourceName").Value;
-            var bSource = b.Raw.Attribute("sourceName").Value;
-
-            if (aSource == bSource)
+            if (a.SourceName == b.SourceName)
             {
                 // same source: reject record with lower steps
                 return PickSmaller(a, b);
             }
 
-            if (aSource.Contains("Watch") || bSource.Contains("Watch"))
+            if (a.SourceName.Contains("Watch") || b.SourceName.Contains("Watch"))
             {
                 // we have a watch source: reject the other one
-                return aSource.Contains("Watch")
+                return a.SourceName.Contains("Watch")
                     ? b
                     : a;
             }

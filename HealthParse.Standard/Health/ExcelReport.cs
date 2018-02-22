@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
+using System.Xml;
+using HealthParse.Standard.Health.Export;
 using HealthParse.Standard.Health.Sheets;
 using HealthParse.Standard.Settings;
 using NodaTime;
@@ -18,9 +19,13 @@ namespace HealthParse.Standard.Health
             using (var outputStream = new MemoryStream())
             using (var excelFile = new ExcelPackage())
             {
-                var export = LoadExportXml(inputStream);
+                var loader = ZipUtilities.ReadArchive(
+                        inputStream,
+                        entry => entry.FullName == "apple_health_export/export.xml",
+                        entry => new XmlReaderExportLoader(entry.Open()))
+                    .FirstOrDefault();
 
-                BuildReport(export, excelFile.Workbook, settings, customSheets);
+                BuildReport(loader.Records, loader.Workouts, excelFile.Workbook, settings, customSheets);
 
                 excelFile.SaveAs(outputStream);
 
@@ -28,20 +33,9 @@ namespace HealthParse.Standard.Health
             }
         }
 
-        private static XDocument LoadExportXml(Stream exportZip)
-        {
-            return ZipUtilities.ReadArchive(
-                exportZip,
-                entry => entry.FullName == "apple_health_export/export.xml",
-                entry => XDocument.Load(entry.Open()))
-            .FirstOrDefault();
-        }
-
-        public static void BuildReport(XDocument export, ExcelWorkbook workbook, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
+        public static void BuildReport(IList<Record> records, IList<Workout> workouts, ExcelWorkbook workbook, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
             var customSheetsList = customSheets.ToList();
-            var records = export.Descendants("Record").Select(Record.FromXElement).ToList();
-            var workouts = export.Descendants("Workout").Select(WorkoutParser.FromXElement).ToList();
 
             var edt = DateTimeZone.ForOffset(Offset.FromHours(-5));
             var zone = edt;
