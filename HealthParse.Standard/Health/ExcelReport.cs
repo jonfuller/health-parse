@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml;
 using HealthParse.Standard.Health.Export;
 using HealthParse.Standard.Health.Sheets;
 using HealthParse.Standard.Settings;
