@@ -13,6 +13,8 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly Settings.Settings _settings;
         private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _playWorkoutBuilder;
+        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _ellipticalWorkoutBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _walkingBuilder;
         private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _strengthBuilder;
@@ -27,6 +29,8 @@ namespace HealthParse.Standard.Health.Sheets
             Settings.Settings settings,
             ISheetBuilder<StepBuilder.StepItem> stepBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
+            ISheetBuilder<WorkoutBuilder.WorkoutItem> playWorkoutBuilder,
+            ISheetBuilder<WorkoutBuilder.WorkoutItem> ellipticalWorkoutBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> walkingBuilder,
             ISheetBuilder<WorkoutBuilder.WorkoutItem> strengthBuilder,
@@ -42,6 +46,8 @@ namespace HealthParse.Standard.Health.Sheets
 
             _stepBuilder = stepBuilder;
             _cyclingBuilder = cyclingBuilder;
+            _playWorkoutBuilder = playWorkoutBuilder;
+            _ellipticalWorkoutBuilder = ellipticalWorkoutBuilder;
             _runningBuilder = runningBuilder;
             _walkingBuilder = walkingBuilder;
             _strengthBuilder = strengthBuilder;
@@ -67,6 +73,8 @@ namespace HealthParse.Standard.Health.Sheets
 
             var stepsByMonth = _stepBuilder.BuildSummary();
             var cyclingWorkouts = _cyclingBuilder.BuildSummary();
+            var playWorkouts = _playWorkoutBuilder.BuildSummary();
+            var ellipticalWorkouts = _ellipticalWorkoutBuilder.BuildSummary();
             var cyclingDistances = _distanceCyclingBuilder.BuildSummary();
             var stregthTrainings = _strengthBuilder.BuildSummary();
             var hiits = _hiitBuilder.BuildSummary();
@@ -78,6 +86,8 @@ namespace HealthParse.Standard.Health.Sheets
             var dataByMonth = from month in healthMonths
                       join steps in stepsByMonth on month equals steps.Date into tmpSteps
                       join wCycling in cyclingWorkouts on month equals wCycling.Date into tmpWCycling
+                      join play in playWorkouts on month equals play.Date into tmpPlay
+                      join elliptical in ellipticalWorkouts on month equals elliptical.Date into tmpElliptical
                       join rCycling in cyclingDistances on month equals rCycling.Date into tmpRCycling
                       join strength in stregthTrainings on month equals strength.Date into tmpStrength
                       join hiit in hiits on month equals hiit.Date into tmpHiit
@@ -87,6 +97,8 @@ namespace HealthParse.Standard.Health.Sheets
                       join bodyFat in bodyFats on month equals bodyFat.Date into tmpBodyFats
                       from steps in tmpSteps.DefaultIfEmpty()
                       from wCycling in tmpWCycling.DefaultIfEmpty()
+                      from play in tmpPlay.DefaultIfEmpty()
+                      from elliptical in tmpElliptical.DefaultIfEmpty()
                       from rCycling in tmpRCycling.DefaultIfEmpty()
                       from strength in tmpStrength.DefaultIfEmpty()
                       from hiit in tmpHiit.DefaultIfEmpty()
@@ -110,6 +122,8 @@ namespace HealthParse.Standard.Health.Sheets
                           runningDuration = running?.Duration.As(_settings.DurationUnit),
                           walkingDistance = walking?.Distance.As(_settings.DistanceUnit),
                           walkingDuration = walking?.Duration.As(_settings.DurationUnit),
+                          playDuration = play?.Duration.As(_settings.DurationUnit),
+                          elliptical = elliptical?.Duration.As(_settings.DurationUnit),
                       };
 
             return dataByMonth;
@@ -129,6 +143,8 @@ namespace HealthParse.Standard.Health.Sheets
             workbook.Names.Add($"{sheet.Name.Rangify()}_runningduration", sheet.Cells["K:K"]);
             workbook.Names.Add($"{sheet.Name.Rangify()}_walkingdistance", sheet.Cells["L:L"]);
             workbook.Names.Add($"{sheet.Name.Rangify()}_walkingduration", sheet.Cells["M:M"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_playduration", sheet.Cells["N:N"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_ellipticalduration", sheet.Cells["O:O"]);
         }
 
         bool ISheetBuilder.HasHeaders => true;
@@ -148,6 +164,8 @@ namespace HealthParse.Standard.Health.Sheets
             ColumnNames.Workout.Running.Duration(_settings.DurationUnit),
             ColumnNames.Workout.Walking.Distance(_settings.DistanceUnit),
             ColumnNames.Workout.Walking.Duration(_settings.DurationUnit),
+            ColumnNames.Workout.Play.Duration(_settings.DurationUnit),
+            ColumnNames.Workout.Elliptical.Duration(_settings.DurationUnit),
         };
     }
 }

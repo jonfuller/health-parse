@@ -18,6 +18,8 @@
             public const string Running = "HKWorkoutActivityTypeRunning";
             public const string Walking = "HKWorkoutActivityTypeWalking";
             public const string Hiit = "HKWorkoutActivityTypeHighIntensityIntervalTraining";
+            public const string Elliptical = "HKWorkoutActivityTypeElliptical";
+            public const string Play = "HKWorkoutActivityTypePlay";
         }
     }
 }

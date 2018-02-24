@@ -8,6 +8,7 @@ namespace HealthParse.Standard.Health.Sheets
         public static string Month() => "Month";
         public static string Distance(LengthUnit unit) => $"Distance ({unit})";
         public static string Duration(DurationUnit unit) => $"Duration ({unit})";
+        public static string EnergyBurned(EnergyUnit unit) => $"Energy Burned ({unit})";
         public static string Weight(MassUnit unit) => $"Weight ({unit})";
         public static string AverageWeight(MassUnit unit) => $"Weight ({unit}, avg)";
 
@@ -37,6 +38,16 @@ namespace HealthParse.Standard.Health.Sheets
             public static class Hiit
             {
                 public static string Duration(DurationUnit unit) => $"HIIT {ColumnNames.Duration(unit)}";
+            }
+
+            public static class Play
+            {
+                public static string Duration(DurationUnit unit) => $"Play {ColumnNames.Duration(unit)}";
+            }
+
+            public static class Elliptical
+            {
+                public static string Duration(DurationUnit unit) => $"Elliptical {ColumnNames.Duration(unit)}";
             }
 
             public static class StrengthTraining

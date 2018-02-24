@@ -40,6 +40,8 @@ namespace HealthParse.Standard.Health
             var zone = edt;
             var stepBuilder = new StepBuilder(records, zone);
             var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone, settings);
+            var playWorkoutBuilder = new PlayWorkoutBuilder(workouts, zone, settings);
+            var ellipticalWorkoutBuilder = new EllipticalWorkoutBuilder(workouts, zone, settings);
             var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone, settings);
             var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone, settings);
             var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone, settings);
@@ -52,6 +54,8 @@ namespace HealthParse.Standard.Health
             var summaryBuilder = new SummaryBuilder(records, workouts, zone, settings,
                 stepBuilder,
                 cyclingWorkoutBuilder,
+                playWorkoutBuilder,
+                ellipticalWorkoutBuilder,
                 runningWorkoutBuilder,
                 walkingWorkoutBuilder,
                 strengthTrainingBuilder,
@@ -83,6 +87,8 @@ namespace HealthParse.Standard.Health
                         settings,
                         stepBuilder,
                         cyclingWorkoutBuilder,
+                        playWorkoutBuilder,
+                        ellipticalWorkoutBuilder,
                         runningWorkoutBuilder,
                         walkingWorkoutBuilder,
                         strengthTrainingBuilder,
@@ -108,6 +114,8 @@ namespace HealthParse.Standard.Health
                 .Concat(new { builder = (ISheetBuilder)hiitBuilder, sheetName = "HIIT", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)ellipticalWorkoutBuilder, sheetName = "Elliptical", omitEmptyColumns = true })
+                .Concat(new { builder = (ISheetBuilder)playWorkoutBuilder, sheetName = "Play", omitEmptyColumns = true })
                 .Concat(new { builder = (ISheetBuilder)settingsBuilder, sheetName = "Settings", omitEmptyColumns = true });
 
             sheetBuilders.ToList().ForEach(s =>

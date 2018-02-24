@@ -3,18 +3,18 @@ using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class RunningWorkoutBuilder : WorkoutBuilder
+    public class EllipticalWorkoutBuilder : WorkoutBuilder
     {
-        public RunningWorkoutBuilder(IEnumerable<Workout> workouts, DateTimeZone zone, Settings.Settings settings)
-            : base(workouts, HKConstants.Workouts.Running, zone, r => new
+        public EllipticalWorkoutBuilder(IEnumerable<Workout> workouts, DateTimeZone zone, Settings.Settings settings)
+            : base(workouts, HKConstants.Workouts.Elliptical, zone, r => new
                 {
                     date = r.StartDate.InZone(zone),
                     duration = r.Duration.As(settings.DurationUnit),
-                    distance = r.Distance.As(settings.DistanceUnit),
+                    burn = r.Energy.As(settings.EnergyUnit),
                 },
                 ColumnNames.Date(),
                 ColumnNames.Duration(settings.DurationUnit),
-                ColumnNames.Distance(settings.DistanceUnit))
+                ColumnNames.EnergyBurned(settings.EnergyUnit))
         {
         }
     }

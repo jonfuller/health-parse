@@ -63,6 +63,9 @@ namespace HealthParse.Standard.Settings
         [Settings(Name = "WeightUnit", Description = "The unit to use report weight in.", DefaultValue = MassUnit.Pound)]
         public MassUnit WeightUnit { get; set; }
 
+        [Settings(Name = "EnergyUnit", Description = "The unit to use report energy (e.g. calories) burned in.", DefaultValue = EnergyUnit.Kilocalorie)]
+        public EnergyUnit EnergyUnit { get; set; }
+
         [Settings(Name = "CustomSheetsPlacement", Description = "Location of custom sheets.", DefaultValue = CustomSheetsPlacement.Last)]
         public CustomSheetsPlacement CustomSheetsPlacement { get; set; }
 
