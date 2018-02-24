@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using OfficeOpenXml;
 
@@ -30,8 +29,12 @@ namespace HealthParse.Standard.Health.Sheets
         {
         }
 
-        bool ISheetBuilder.HasHeaders => false;
-
-        IEnumerable<string> ISheetBuilder.Headers => throw new NotImplementedException();
+        IEnumerable<string> ISheetBuilder.Headers => new []
+        {
+            ColumnNames.Settings.Name(),
+            ColumnNames.Settings.Value(),
+            ColumnNames.Settings.DefaultValue(),
+            ColumnNames.Settings.Description(),
+        };
     }
 }

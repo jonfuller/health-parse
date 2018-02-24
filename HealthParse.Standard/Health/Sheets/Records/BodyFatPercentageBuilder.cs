@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 using OfficeOpenXml;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health.Sheets.Records
 {
     public class BodyFatPercentageBuilder : ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem>
     {
@@ -28,8 +27,6 @@ namespace HealthParse.Standard.Health.Sheets
         void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
         {
         }
-
-        bool ISheetBuilder.HasHeaders => true;
 
         IEnumerable<string> ISheetBuilder.Headers => new[]
         {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnitsNet;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health
 {
     public static class UnitExtensions
     {

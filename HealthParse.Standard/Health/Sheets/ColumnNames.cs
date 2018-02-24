@@ -17,6 +17,14 @@ namespace HealthParse.Standard.Health.Sheets
         public static string AverageBodyFatPercentage() => "Body Fat (%, avg)";
         public static string CyclingDistance(LengthUnit unit) => $"Cycling {ColumnNames.Distance(unit)}";
 
+        public static class Settings
+        {
+            public static string Name() => "Name";
+            public static string Value() => "Value";
+            public static string DefaultValue() => "DefaultValue";
+            public static string Description() => "Description";
+        }
+
         public static class Workout
         {
             public static class Cycling

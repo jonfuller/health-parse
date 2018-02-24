@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using HealthParse.Standard.Health.Sheets.Records;
+using HealthParse.Standard.Health.Sheets.Workouts;
 using NodaTime;
 using OfficeOpenXml;
 
@@ -146,8 +148,6 @@ namespace HealthParse.Standard.Health.Sheets
             workbook.Names.Add($"{sheet.Name.Rangify()}_playduration", sheet.Cells["N:N"]);
             workbook.Names.Add($"{sheet.Name.Rangify()}_ellipticalduration", sheet.Cells["O:O"]);
         }
-
-        bool ISheetBuilder.HasHeaders => true;
 
         IEnumerable<string> ISheetBuilder.Headers => new[]
         {

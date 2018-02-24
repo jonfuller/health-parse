@@ -4,7 +4,7 @@ using NodaTime;
 using OfficeOpenXml;
 using UnitsNet;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health.Sheets.Records
 {
     public class DistanceCyclingBuilder : ISheetBuilder<DistanceCyclingBuilder.CyclingItem>
     {
@@ -35,8 +35,6 @@ namespace HealthParse.Standard.Health.Sheets
         void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
         {
         }
-
-        bool ISheetBuilder.HasHeaders => true;
 
         IEnumerable<string> ISheetBuilder.Headers => new[]
         {

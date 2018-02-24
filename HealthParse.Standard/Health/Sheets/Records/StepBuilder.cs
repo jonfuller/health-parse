@@ -3,7 +3,7 @@ using System.Linq;
 using NodaTime;
 using OfficeOpenXml;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health.Sheets.Records
 {
     public class StepBuilder : ISheetBuilder<StepBuilder.StepItem>
     {
@@ -25,8 +25,6 @@ namespace HealthParse.Standard.Health.Sheets
         void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
         {
         }
-
-        bool ISheetBuilder.HasHeaders => true;
 
         IEnumerable<string> ISheetBuilder.Headers => new[]
         {

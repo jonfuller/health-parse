@@ -6,7 +6,7 @@ using OfficeOpenXml;
 using UnitsNet;
 using UNDuration = UnitsNet.Duration;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health.Sheets.Workouts
 {
     public abstract class WorkoutBuilder : ISheetBuilder<WorkoutBuilder.WorkoutItem>
     {

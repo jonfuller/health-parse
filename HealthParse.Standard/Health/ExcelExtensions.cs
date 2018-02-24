@@ -21,26 +21,10 @@ namespace HealthParse.Standard.Health
         {
             {typeof(DateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" },
         };
-        public static void WriteData(this ExcelWorksheet target, IEnumerable<object> dataRows, bool addInferredHeaders = true, bool omitEmptyColumns = true, IEnumerable<string> headers = null)
+        public static void WriteData(this ExcelWorksheet target, IEnumerable<object> dataRows, bool omitEmptyColumns = true, IEnumerable<string> headers = null)
         {
             var rows = dataRows.ToList();
-            var hasHeaders = false;
-            if (headers != null)
-            {
-                hasHeaders = true;
-                headers = headers;
-            }else if(addInferredHeaders && rows.Any())
-            {
-                hasHeaders = true;
-                headers = GetPropHeaders(rows.First());
-            }
-            else
-            {
-                hasHeaders = false;
-                headers = null;
-            }
-
-            GetLines(rows, headers, hasHeaders)
+            GetLines(rows, headers)
                 .SelectMany((row, rowNum) => row.Select((value, columnNum) => new { value, rowNum, columnNum }))
                 .ToList()
                 .ForEach(item =>
@@ -55,20 +39,13 @@ namespace HealthParse.Standard.Health
                 });
 
 
-            if (omitEmptyColumns) OmitEmptyColumns(target, hasHeaders);
+            if (omitEmptyColumns) OmitEmptyColumns(target);
         }
 
-        private static IEnumerable<string> GetPropHeaders(object protoType)
-        {
-            var props = protoType.GetType().GetProperties();
-
-            return props.Select(prop => prop.Name);
-        }
-
-        private static void OmitEmptyColumns(ExcelWorksheet sheet, bool hasHeaders)
+        private static void OmitEmptyColumns(ExcelWorksheet sheet)
         {
             Enumerable.Range(1, sheet.Dimension.Columns)
-                .Select(colNum => new { colNum, colRange = sheet.Cells[hasHeaders ? 2 : 1, colNum, sheet.Dimension.End.Row, colNum]})
+                .Select(colNum => new { colNum, colRange = sheet.Cells[2, colNum, sheet.Dimension.End.Row, colNum]})
                 .Select(x => new { x.colNum, empty = x.colRange.All(c => c.Value == null)})
                 .Where(x => x.empty)
                 .Select(x => x.colNum)
@@ -77,17 +54,14 @@ namespace HealthParse.Standard.Health
                 .ForEach(sheet.DeleteColumn);
         }
 
-        private static IEnumerable<IEnumerable<object>> GetLines(IList<object> rows, IEnumerable<string> headers, bool hasHeaders)
+        private static IEnumerable<IEnumerable<object>> GetLines(IList<object> rows, IEnumerable<string> headers)
         {
             if (!rows.Any())
             {
                 yield break;
             }
 
-            if (hasHeaders)
-            {
-                yield return headers;
-            }
+            yield return headers;
 
             var props = rows.First().GetType().GetProperties();
             foreach (var row in rows)

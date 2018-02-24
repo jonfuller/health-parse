@@ -7,9 +7,7 @@ namespace HealthParse.Standard.Health.Sheets
     public interface ISheetBuilder
     {
         IEnumerable<object> BuildRawSheet();
-        bool HasHeaders { get; }
         IEnumerable<string> Headers { get; }
-
         void Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook);
     }
     public interface ISheetBuilder<out TItem> : ISheetBuilder where TItem : DatedItem

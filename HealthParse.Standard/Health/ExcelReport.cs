@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using HealthParse.Standard.Health.Export;
 using HealthParse.Standard.Health.Sheets;
+using HealthParse.Standard.Health.Sheets.Records;
+using HealthParse.Standard.Health.Sheets.Workouts;
 using HealthParse.Standard.Settings;
 using NodaTime;
 using OfficeOpenXml;
@@ -129,7 +131,7 @@ namespace HealthParse.Standard.Health
                     sheet.WriteData(
                         sheetData,
                         omitEmptyColumns: s.omitEmptyColumns,
-                        headers: s.builder.HasHeaders ? s.builder.Headers : null);
+                        headers: s.builder.Headers);
                     s.builder.Customize(sheet, workbook);
                 }
             });

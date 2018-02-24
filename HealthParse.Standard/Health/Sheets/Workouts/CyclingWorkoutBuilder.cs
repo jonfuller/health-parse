@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NodaTime;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health.Sheets.Workouts
 {
     public class CyclingWorkoutBuilder : WorkoutBuilder
     {

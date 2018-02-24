@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using NodaTime;
 
-namespace HealthParse.Standard.Health.Sheets
+namespace HealthParse.Standard.Health.Sheets.Workouts
 {
-    public class HiitBuilder : WorkoutBuilder
+    public class StrengthTrainingBuilder : WorkoutBuilder
     {
-        public HiitBuilder(IEnumerable<Workout> workouts, DateTimeZone zone, Settings.Settings settings)
-            : base(workouts, HKConstants.Workouts.Hiit, zone, r => new
+        public StrengthTrainingBuilder(IEnumerable<Workout> workouts, DateTimeZone zone, Settings.Settings settings)
+            : base(workouts, HKConstants.Workouts.Strength, zone, r => new
             {
                 date = r.StartDate.InZone(zone),
                 duration = r.Duration.As(settings.DurationUnit),
