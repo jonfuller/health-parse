@@ -8,36 +8,36 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class MonthSummaryBuilder : ISheetBuilder
+    public class MonthSummaryBuilder : IRawSheetBuilder
     {
         private readonly int _targetYear;
         private readonly int _targetMonth;
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
-        private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _playBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _ellipticalBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _walkingBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _strengthBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _hiitBuilder;
-        private readonly ISheetBuilder<DistanceCyclingBuilder.CyclingItem> _distanceCyclingBuilder;
-        private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
-        private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
+        private readonly StepBuilder _stepBuilder;
+        private readonly CyclingWorkoutBuilder _cyclingBuilder;
+        private readonly PlayWorkoutBuilder _playBuilder;
+        private readonly EllipticalWorkoutBuilder _ellipticalBuilder;
+        private readonly RunningWorkoutBuilder _runningBuilder;
+        private readonly WalkingWorkoutBuilder _walkingBuilder;
+        private readonly StrengthTrainingBuilder _strengthBuilder;
+        private readonly HiitBuilder _hiitBuilder;
+        private readonly DistanceCyclingBuilder _distanceCyclingBuilder;
+        private readonly MassBuilder _massBuilder;
+        private readonly BodyFatPercentageBuilder _bodyFatBuilder;
 
         public MonthSummaryBuilder(int targetYear, int targetMonth, DateTimeZone zone, Settings.Settings settings,
-            ISheetBuilder<StepBuilder.StepItem> stepBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> playBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> ellipticalBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> walkingBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> strengthBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> hiitBuilder,
-            ISheetBuilder<DistanceCyclingBuilder.CyclingItem> distanceCyclingBuilder,
-            ISheetBuilder<MassBuilder.MassItem> massBuilder,
-            ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> bodyFatBuilder)
+            StepBuilder stepBuilder,
+            CyclingWorkoutBuilder cyclingBuilder,
+            PlayWorkoutBuilder playBuilder,
+            EllipticalWorkoutBuilder ellipticalBuilder,
+            RunningWorkoutBuilder runningBuilder,
+            WalkingWorkoutBuilder walkingBuilder,
+            StrengthTrainingBuilder strengthBuilder,
+            HiitBuilder hiitBuilder,
+            DistanceCyclingBuilder distanceCyclingBuilder,
+            MassBuilder massBuilder,
+            BodyFatPercentageBuilder bodyFatBuilder)
         {
             _targetYear = targetYear;
             _targetMonth = targetMonth;
@@ -57,7 +57,7 @@ namespace HealthParse.Standard.Health.Sheets
             _bodyFatBuilder = bodyFatBuilder;
         }
 
-        IEnumerable<object> ISheetBuilder.BuildRawSheet()
+        public IEnumerable<object> BuildRawSheet()
         {
             var monthDays = Enumerable.Range(1, DateTime.DaysInMonth(_targetYear, _targetMonth))
                 .Select(d => new LocalDate(_targetYear, _targetMonth, d))
@@ -123,7 +123,7 @@ namespace HealthParse.Standard.Health.Sheets
             return data;
         }
 
-        void ISheetBuilder.Customize(ExcelWorksheet sheet, ExcelWorkbook workbook)
+        public void Customize(ExcelWorksheet sheet, ExcelWorkbook workbook)
         {
             workbook.Names.Add($"{sheet.Name.Rangify()}_steps", sheet.Cells["B:B"]);
             workbook.Names.Add($"{sheet.Name.Rangify()}_weight", sheet.Cells["C:C"]);
@@ -141,7 +141,7 @@ namespace HealthParse.Standard.Health.Sheets
             workbook.Names.Add($"{sheet.Name.Rangify()}_ellipticalduration", sheet.Cells["O:O"]);
         }
 
-        IEnumerable<string> ISheetBuilder.Headers => new []
+        public IEnumerable<string> Headers => new []
         {
             ColumnNames.Date(),
             ColumnNames.Steps(),

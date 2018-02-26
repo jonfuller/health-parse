@@ -5,7 +5,7 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class StepBuilder : ISheetBuilder<StepBuilder.StepItem>
+    public class StepBuilder : IRawSheetBuilder, IMonthlySummaryBuilder<StepBuilder.StepItem>, ISummarySheetBuilder<StepBuilder.StepItem>
     {
         private readonly DateTimeZone _zone;
         private readonly IEnumerable<Record> _records;
@@ -16,30 +16,30 @@ namespace HealthParse.Standard.Health.Sheets.Records
             _records = records.Where(r => r.Type == HKConstants.Records.StepCount);
         }
 
-        IEnumerable<object> ISheetBuilder.BuildRawSheet()
+        public IEnumerable<object> BuildRawSheet()
         {
             return GetStepsByDay()
                 .Select(s => new{Date = s.Date.ToDateTimeUnspecified(), s.Steps});
         }
 
-        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        public void Customize(ExcelWorksheet _, ExcelWorkbook workbook)
         {
         }
 
-        IEnumerable<string> ISheetBuilder.Headers => new[]
+        public IEnumerable<string> Headers => new[]
         {
             ColumnNames.Date(),
             ColumnNames.Steps(),
         };
 
-        IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummary()
+        public IEnumerable<StepItem> BuildSummary()
         {
             return GetStepsByDay()
                 .GroupBy(s => new { s.Date.Year, s.Date.Month })
                 .Select(x => new StepItem(x.Key.Year, x.Key.Month, x.Sum(r => r.Steps)));
         }
 
-        IEnumerable<StepItem> ISheetBuilder<StepItem>.BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
+        public IEnumerable<StepItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
             return GetStepsByDay().Where(x => dateRange.Includes(x.Date.AtStartOfDayInZone(_zone), Clusivity.Inclusive));
         }

@@ -7,39 +7,39 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class SummaryBuilder : ISheetBuilder
+    public class SummaryBuilder : IRawSheetBuilder
     {
         private readonly IEnumerable<Record> _records;
         private readonly IEnumerable<Workout> _workouts;
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
-        private readonly ISheetBuilder<StepBuilder.StepItem> _stepBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _cyclingBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _playWorkoutBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _ellipticalWorkoutBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _runningBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _walkingBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _strengthBuilder;
-        private readonly ISheetBuilder<WorkoutBuilder.WorkoutItem> _hiitBuilder;
-        private readonly ISheetBuilder<DistanceCyclingBuilder.CyclingItem> _distanceCyclingBuilder;
-        private readonly ISheetBuilder<MassBuilder.MassItem> _massBuilder;
-        private readonly ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> _bodyFatBuilder;
+        private readonly StepBuilder _stepBuilder;
+        private readonly CyclingWorkoutBuilder _cyclingBuilder;
+        private readonly PlayWorkoutBuilder _playBuilder;
+        private readonly EllipticalWorkoutBuilder _ellipticalBuilder;
+        private readonly RunningWorkoutBuilder _runningBuilder;
+        private readonly WalkingWorkoutBuilder _walkingBuilder;
+        private readonly StrengthTrainingBuilder _strengthBuilder;
+        private readonly HiitBuilder _hiitBuilder;
+        private readonly DistanceCyclingBuilder _distanceCyclingBuilder;
+        private readonly MassBuilder _massBuilder;
+        private readonly BodyFatPercentageBuilder _bodyFatBuilder;
 
         public SummaryBuilder(IEnumerable<Record> records,
             IEnumerable<Workout> workouts,
             DateTimeZone zone,
             Settings.Settings settings,
-            ISheetBuilder<StepBuilder.StepItem> stepBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> cyclingBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> playWorkoutBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> ellipticalWorkoutBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> runningBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> walkingBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> strengthBuilder,
-            ISheetBuilder<WorkoutBuilder.WorkoutItem> hiitBuilder,
-            ISheetBuilder<DistanceCyclingBuilder.CyclingItem> distanceCyclingBuilder,
-            ISheetBuilder<MassBuilder.MassItem> massBuilder,
-            ISheetBuilder<BodyFatPercentageBuilder.BodyFatItem> bodyFatBuilder)
+            StepBuilder stepBuilder,
+            CyclingWorkoutBuilder cyclingBuilder,
+            PlayWorkoutBuilder playBuilder,
+            EllipticalWorkoutBuilder ellipticalBuilder,
+            RunningWorkoutBuilder runningBuilder,
+            WalkingWorkoutBuilder walkingBuilder,
+            StrengthTrainingBuilder strengthBuilder,
+            HiitBuilder hiitBuilder,
+            DistanceCyclingBuilder distanceCyclingBuilder,
+            MassBuilder massBuilder,
+            BodyFatPercentageBuilder bodyFatBuilder)
         {
             _records = records;
             _workouts = workouts;
@@ -48,8 +48,8 @@ namespace HealthParse.Standard.Health.Sheets
 
             _stepBuilder = stepBuilder;
             _cyclingBuilder = cyclingBuilder;
-            _playWorkoutBuilder = playWorkoutBuilder;
-            _ellipticalWorkoutBuilder = ellipticalWorkoutBuilder;
+            _playBuilder = playBuilder;
+            _ellipticalBuilder = ellipticalBuilder;
             _runningBuilder = runningBuilder;
             _walkingBuilder = walkingBuilder;
             _strengthBuilder = strengthBuilder;
@@ -59,7 +59,7 @@ namespace HealthParse.Standard.Health.Sheets
             _bodyFatBuilder = bodyFatBuilder;
         }
 
-        IEnumerable<object> ISheetBuilder.BuildRawSheet()
+        public IEnumerable<object> BuildRawSheet()
         {
             var recordMonths = _records
                 .GroupBy(s => new { s.StartDate.InZone(_zone).Year, s.StartDate.InZone(_zone).Month })
@@ -75,8 +75,8 @@ namespace HealthParse.Standard.Health.Sheets
 
             var stepsByMonth = _stepBuilder.BuildSummary();
             var cyclingWorkouts = _cyclingBuilder.BuildSummary();
-            var playWorkouts = _playWorkoutBuilder.BuildSummary();
-            var ellipticalWorkouts = _ellipticalWorkoutBuilder.BuildSummary();
+            var playWorkouts = _playBuilder.BuildSummary();
+            var ellipticalWorkouts = _ellipticalBuilder.BuildSummary();
             var cyclingDistances = _distanceCyclingBuilder.BuildSummary();
             var stregthTrainings = _strengthBuilder.BuildSummary();
             var hiits = _hiitBuilder.BuildSummary();
@@ -131,7 +131,7 @@ namespace HealthParse.Standard.Health.Sheets
             return dataByMonth;
         }
 
-        void ISheetBuilder.Customize(ExcelWorksheet sheet, ExcelWorkbook workbook)
+        public void Customize(ExcelWorksheet sheet, ExcelWorkbook workbook)
         {
             workbook.Names.Add($"{sheet.Name.Rangify()}_steps", sheet.Cells["B:B"]);
             workbook.Names.Add($"{sheet.Name.Rangify()}_avgweight", sheet.Cells["C:C"]);
@@ -149,7 +149,7 @@ namespace HealthParse.Standard.Health.Sheets
             workbook.Names.Add($"{sheet.Name.Rangify()}_ellipticalduration", sheet.Cells["O:O"]);
         }
 
-        IEnumerable<string> ISheetBuilder.Headers => new[]
+        public IEnumerable<string> Headers => new[]
         {
             ColumnNames.Month(),
             ColumnNames.Steps(),

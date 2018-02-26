@@ -4,7 +4,7 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class SettingsSheetBuilder : ISheetBuilder
+    public class SettingsSheetBuilder : IRawSheetBuilder
     {
         private readonly Settings.Settings _settings;
 
@@ -25,11 +25,11 @@ namespace HealthParse.Standard.Health.Sheets
                 });
         }
 
-        void ISheetBuilder.Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook)
+        public void Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook)
         {
         }
 
-        IEnumerable<string> ISheetBuilder.Headers => new []
+        public IEnumerable<string> Headers => new []
         {
             ColumnNames.Settings.Name(),
             ColumnNames.Settings.Value(),

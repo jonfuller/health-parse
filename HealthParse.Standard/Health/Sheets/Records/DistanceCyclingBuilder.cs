@@ -6,7 +6,7 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class DistanceCyclingBuilder : ISheetBuilder<DistanceCyclingBuilder.CyclingItem>
+    public class DistanceCyclingBuilder : IRawSheetBuilder, IMonthlySummaryBuilder<DistanceCyclingBuilder.CyclingItem>, ISummarySheetBuilder<DistanceCyclingBuilder.CyclingItem>
     {
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
@@ -21,7 +21,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .Select(DistanceCycling.FromRecord)
                 .ToList();
         }
-        IEnumerable<object> ISheetBuilder.BuildRawSheet()
+        public IEnumerable<object> BuildRawSheet()
         {
             return _records
                 .OrderByDescending(r => r.StartDate)
@@ -32,17 +32,17 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 });
         }
 
-        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        public void Customize(ExcelWorksheet _, ExcelWorkbook workbook)
         {
         }
 
-        IEnumerable<string> ISheetBuilder.Headers => new[]
+        public IEnumerable<string> Headers => new[]
         {
             ColumnNames.Date(),
             ColumnNames.Distance(_settings.DistanceUnit),
         };
 
-        IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummary()
+        public IEnumerable<CyclingItem> BuildSummary()
         {
             return _records
                 .Select(record => new {zoned = record.StartDate.InZone(_zone), record})
@@ -50,7 +50,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .Select(x => new CyclingItem(x.Key.Year, x.Key.Month, x.Sum(c => c.record.Distance)));
         }
 
-        IEnumerable<CyclingItem> ISheetBuilder<CyclingItem>.BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
+        public IEnumerable<CyclingItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
             return _records
                 .Select(record => new { zoned = record.StartDate.InZone(_zone), record })

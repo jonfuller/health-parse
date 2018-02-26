@@ -51,6 +51,7 @@ namespace HealthParse.Standard.Health
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone, settings);
             var massBuilder = new MassBuilder(records, zone, settings);
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
+            var standHoursBuilder = new StandBuilder(records, zone);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
             var summaryBuilder = new SummaryBuilder(records, workouts, zone, settings,
@@ -81,9 +82,7 @@ namespace HealthParse.Standard.Health
                         : isPreviousMonth && settings.UseConstantNameForPreviousMonthlySummarySheet ? "Month Summary - Previous"
                         : $"Month Summary - {m.Year} - {m.Month}";
 
-                    return new
-                    {
-                        builder = (ISheetBuilder)new MonthSummaryBuilder(m.Year,
+                    var builder = new MonthSummaryBuilder(m.Year,
                         m.Month,
                         zone,
                         settings,
@@ -97,7 +96,11 @@ namespace HealthParse.Standard.Health
                         hiitBuilder,
                         distanceCyclingBuilder,
                         massBuilder,
-                        bodyFatBuilder),
+                        bodyFatBuilder);
+
+                    return new
+                    {
+                        builder = (IRawSheetBuilder)builder,
                         sheetName,
                         omitEmptyColumns = settings.OmitEmptyColumnsOnMonthlySummary,
                     };
@@ -105,20 +108,21 @@ namespace HealthParse.Standard.Health
 
 
             var summarySheetName = "Overall Summary";
-            var sheetBuilders = new[] { new { builder = (ISheetBuilder)summaryBuilder, sheetName = summarySheetName, omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary} }
+            var sheetBuilders = new[] { new { builder = (IRawSheetBuilder)summaryBuilder, sheetName = summarySheetName, omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary} }
                 .Concat(monthBuilders)
-                .Concat(new { builder = (ISheetBuilder)stepBuilder, sheetName = "Steps", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)massBuilder, sheetName = "Mass (Weight)", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)bodyFatBuilder, sheetName = "Body Fat %", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)hiitBuilder, sheetName = "HIIT", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)runningWorkoutBuilder, sheetName = "Running", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)walkingWorkoutBuilder, sheetName = "Walking", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)ellipticalWorkoutBuilder, sheetName = "Elliptical", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)playWorkoutBuilder, sheetName = "Play", omitEmptyColumns = true })
-                .Concat(new { builder = (ISheetBuilder)settingsBuilder, sheetName = "Settings", omitEmptyColumns = true });
+                .Concat(new { builder = (IRawSheetBuilder)stepBuilder, sheetName = "Steps", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)massBuilder, sheetName = "Mass (Weight)", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)bodyFatBuilder, sheetName = "Body Fat %", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)standHoursBuilder, sheetName = "Stand Hours", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)distanceCyclingBuilder, sheetName = "Cycling (Distance)", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)strengthTrainingBuilder, sheetName = "Strength Training", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)hiitBuilder, sheetName = "HIIT", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)runningWorkoutBuilder, sheetName = "Running", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)walkingWorkoutBuilder, sheetName = "Walking", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)ellipticalWorkoutBuilder, sheetName = "Elliptical", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)playWorkoutBuilder, sheetName = "Play", omitEmptyColumns = true })
+                .Concat(new { builder = (IRawSheetBuilder)settingsBuilder, sheetName = "Settings", omitEmptyColumns = true });
 
             sheetBuilders.ToList().ForEach(s =>
             {
@@ -130,8 +134,8 @@ namespace HealthParse.Standard.Health
                     var sheet = workbook.Worksheets.Add(s.sheetName);
                     sheet.WriteData(
                         sheetData,
-                        omitEmptyColumns: s.omitEmptyColumns,
-                        headers: s.builder.Headers);
+                        s.omitEmptyColumns,
+                        s.builder.Headers);
                     s.builder.Customize(sheet, workbook);
                 }
             });

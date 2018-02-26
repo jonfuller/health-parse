@@ -4,16 +4,20 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public interface ISheetBuilder
+    public interface IRawSheetBuilder
     {
         IEnumerable<object> BuildRawSheet();
         IEnumerable<string> Headers { get; }
         void Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook);
     }
-    public interface ISheetBuilder<out TItem> : ISheetBuilder where TItem : DatedItem
+
+    public interface IMonthlySummaryBuilder<out TItem> where TItem : DatedItem
+    {
+        IEnumerable<TItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange);
+    }
+    public interface ISummarySheetBuilder<out TItem> where TItem : DatedItem
     {
         IEnumerable<TItem> BuildSummary();
-        IEnumerable<TItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange);
     }
 
     public class DatedItem

@@ -6,7 +6,7 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class MassBuilder : ISheetBuilder<MassBuilder.MassItem>
+    public class MassBuilder : IRawSheetBuilder, IMonthlySummaryBuilder<MassBuilder.MassItem>, ISummarySheetBuilder<MassBuilder.MassItem>
     {
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
@@ -22,24 +22,24 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .ToList();
         }
 
-        IEnumerable<object> ISheetBuilder.BuildRawSheet()
+        public IEnumerable<object> BuildRawSheet()
         {
             return _records
                 .Select(r => new {Date = r.StartDate.InZone(_zone).ToDateTimeUnspecified(), Mass = r.Value.As(_settings.WeightUnit)})
                 .OrderByDescending(r => r.Date);
         }
 
-        void ISheetBuilder.Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        public void Customize(ExcelWorksheet _, ExcelWorkbook workbook)
         {
         }
 
-        IEnumerable<string> ISheetBuilder.Headers => new []
+        public IEnumerable<string> Headers => new []
         {
             ColumnNames.Date(),
             ColumnNames.Weight(_settings.WeightUnit),
         };
 
-        IEnumerable<MassItem> ISheetBuilder<MassItem>.BuildSummary()
+        public IEnumerable<MassItem> BuildSummary()
         {
             return _records
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
@@ -48,7 +48,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .Select(x => new MassItem(x.Key.Year, x.Key.Month, x.Average(c => c.mass)));
         }
 
-        IEnumerable<MassItem> ISheetBuilder<MassItem>.BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
+        public IEnumerable<MassItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
             return _records
                 .Where(r => dateRange.Includes(r.StartDate.InZone(_zone), Clusivity.Inclusive))
