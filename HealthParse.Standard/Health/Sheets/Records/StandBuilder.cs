@@ -37,14 +37,14 @@ namespace HealthParse.Standard.Health.Sheets.Records
         {
         }
 
-        IEnumerable<StandItem> ISummarySheetBuilder<StandItem>.BuildSummary()
+        public IEnumerable<StandItem> BuildSummary()
         {
             return _records
                 .GroupBy(s => new { s.Date.Year, s.Date.Month })
                 .Select(x => new StandItem(x.Key.Year, x.Key.Month, x.Average(c => c.StandHours)));
         }
 
-        IEnumerable<StandItem> IMonthlySummaryBuilder<StandItem>.BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
+        public IEnumerable<StandItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
             return _records
                 .Where(r => dateRange.Includes(r.Date.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
@@ -58,7 +58,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
         }
         public class StandItem : DatedItem
         {
-            private double AverageStandHours { get; }
+            public double AverageStandHours { get; }
 
             public StandItem(int year, int month, double averageStandHours) : base(year, month)
             {

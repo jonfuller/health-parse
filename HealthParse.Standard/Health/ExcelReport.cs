@@ -56,6 +56,7 @@ namespace HealthParse.Standard.Health
 
             var summaryBuilder = new SummaryBuilder(records, workouts, zone, settings,
                 stepBuilder,
+                standHoursBuilder,
                 cyclingWorkoutBuilder,
                 playWorkoutBuilder,
                 ellipticalWorkoutBuilder,
@@ -87,6 +88,7 @@ namespace HealthParse.Standard.Health
                         zone,
                         settings,
                         stepBuilder,
+                        standHoursBuilder,
                         cyclingWorkoutBuilder,
                         playWorkoutBuilder,
                         ellipticalWorkoutBuilder,

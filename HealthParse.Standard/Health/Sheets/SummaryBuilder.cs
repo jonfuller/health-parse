@@ -14,6 +14,7 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
         private readonly StepBuilder _stepBuilder;
+        private readonly StandBuilder _standBuilder;
         private readonly CyclingWorkoutBuilder _cyclingBuilder;
         private readonly PlayWorkoutBuilder _playBuilder;
         private readonly EllipticalWorkoutBuilder _ellipticalBuilder;
@@ -30,6 +31,7 @@ namespace HealthParse.Standard.Health.Sheets
             DateTimeZone zone,
             Settings.Settings settings,
             StepBuilder stepBuilder,
+            StandBuilder standBuilder,
             CyclingWorkoutBuilder cyclingBuilder,
             PlayWorkoutBuilder playBuilder,
             EllipticalWorkoutBuilder ellipticalBuilder,
@@ -47,6 +49,7 @@ namespace HealthParse.Standard.Health.Sheets
             _settings = settings;
 
             _stepBuilder = stepBuilder;
+            _standBuilder = standBuilder;
             _cyclingBuilder = cyclingBuilder;
             _playBuilder = playBuilder;
             _ellipticalBuilder = ellipticalBuilder;
@@ -74,6 +77,7 @@ namespace HealthParse.Standard.Health.Sheets
                 .Select(m => new DatedItem(m.Year, m.Month).Date);
 
             var stepsByMonth = _stepBuilder.BuildSummary();
+            var standingByMonth = _standBuilder.BuildSummary();
             var cyclingWorkouts = _cyclingBuilder.BuildSummary();
             var playWorkouts = _playBuilder.BuildSummary();
             var ellipticalWorkouts = _ellipticalBuilder.BuildSummary();
@@ -87,6 +91,7 @@ namespace HealthParse.Standard.Health.Sheets
 
             var dataByMonth = from month in healthMonths
                       join steps in stepsByMonth on month equals steps.Date into tmpSteps
+                      join stand in standingByMonth on month equals stand.Date into tmpStand
                       join wCycling in cyclingWorkouts on month equals wCycling.Date into tmpWCycling
                       join play in playWorkouts on month equals play.Date into tmpPlay
                       join elliptical in ellipticalWorkouts on month equals elliptical.Date into tmpElliptical
@@ -98,6 +103,7 @@ namespace HealthParse.Standard.Health.Sheets
                       join mass in masses on month equals mass.Date into tmpMasses
                       join bodyFat in bodyFats on month equals bodyFat.Date into tmpBodyFats
                       from steps in tmpSteps.DefaultIfEmpty()
+                      from stand in tmpStand.DefaultIfEmpty()
                       from wCycling in tmpWCycling.DefaultIfEmpty()
                       from play in tmpPlay.DefaultIfEmpty()
                       from elliptical in tmpElliptical.DefaultIfEmpty()
@@ -113,6 +119,7 @@ namespace HealthParse.Standard.Health.Sheets
                       {
                           month = month.ToDateTimeUnspecified(),
                           steps?.Steps,
+                          stand?.AverageStandHours,
                           AverageMass = mass?.Mass.As(_settings.WeightUnit),
                           AverageBodyFatPct = bodyFat?.BodyFatPercentage,
                           cyclingWorkoutDistance = wCycling?.Distance.As(_settings.DistanceUnit),
@@ -134,25 +141,27 @@ namespace HealthParse.Standard.Health.Sheets
         public void Customize(ExcelWorksheet sheet, ExcelWorkbook workbook)
         {
             workbook.Names.Add($"{sheet.Name.Rangify()}_steps", sheet.Cells["B:B"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_avgweight", sheet.Cells["C:C"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_avgbodyfatpct", sheet.Cells["D:D"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_cyclingdistance", sheet.Cells["E:E"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_cyclingduration", sheet.Cells["F:F"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_distancecyclingdistance", sheet.Cells["G:G"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_strengthtrainingduration", sheet.Cells["H:H"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_hittduration", sheet.Cells["I:I"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_runningdistance", sheet.Cells["J:J"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_runningduration", sheet.Cells["K:K"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_walkingdistance", sheet.Cells["L:L"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_walkingduration", sheet.Cells["M:M"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_playduration", sheet.Cells["N:N"]);
-            workbook.Names.Add($"{sheet.Name.Rangify()}_ellipticalduration", sheet.Cells["O:O"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_standhours", sheet.Cells["C:C"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_avgweight", sheet.Cells["D:D"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_avgbodyfatpct", sheet.Cells["E:E"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_cyclingdistance", sheet.Cells["F:F"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_cyclingduration", sheet.Cells["G:G"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_distancecyclingdistance", sheet.Cells["H:H"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_strengthtrainingduration", sheet.Cells["I:I"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_hiitduration", sheet.Cells["J:J"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_runningdistance", sheet.Cells["K:K"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_runningduration", sheet.Cells["L:L"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_walkingdistance", sheet.Cells["M:M"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_walkingduration", sheet.Cells["N:N"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_playduration", sheet.Cells["O:O"]);
+            workbook.Names.Add($"{sheet.Name.Rangify()}_ellipticalduration", sheet.Cells["P:P"]);
         }
 
         public IEnumerable<string> Headers => new[]
         {
             ColumnNames.Month(),
             ColumnNames.Steps(),
+            ColumnNames.AverageStandHours(),
             ColumnNames.AverageWeight(_settings.WeightUnit),
             ColumnNames.AverageBodyFatPercentage(),
             ColumnNames.Workout.Cycling.Distance(_settings.DistanceUnit),
