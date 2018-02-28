@@ -1,72 +1,84 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class StepBuilder : IRawSheetBuilder, IMonthlySummaryBuilder<StepBuilder.StepItem>, ISummarySheetBuilder<StepBuilder.StepItem>
+    public class StepBuilder : IRawSheetBuilder<LocalDate>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
     {
+        private readonly IEnumerable<StepItem> _stepsByDay;
         private readonly DateTimeZone _zone;
-        private readonly IEnumerable<Record> _records;
 
         public StepBuilder(IEnumerable<Record> records, DateTimeZone zone)
         {
             _zone = zone;
-            _records = records.Where(r => r.Type == HKConstants.Records.StepCount);
+            _stepsByDay = GetStepsByDay(records.Where(r => r.Type == HKConstants.Records.StepCount), zone);
         }
 
-        public IEnumerable<object> BuildRawSheet()
+        public Dataset<LocalDate> BuildRawSheet()
         {
-            return GetStepsByDay()
-                .Select(s => new{Date = s.Date.ToDateTimeUnspecified(), s.Steps});
+            var columns = _stepsByDay
+                .Aggregate(new
+                {
+                    dateColumn = new KeyColumn<LocalDate> { Header = ColumnNames.Date() },
+                    steps = new Column<LocalDate>(),
+                },
+                (cols, step) =>
+                {
+                    cols.dateColumn.Add(step.Date);
+                    cols.steps.Add(step.Date, step.Steps);
+
+                    return cols;
+                });
+
+            return new Dataset<LocalDate>(columns.dateColumn, columns.steps);
         }
 
-        public void Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        public IEnumerable<Column<LocalDate>> BuildSummary()
         {
-        }
-
-        public IEnumerable<string> Headers => new[]
-        {
-            ColumnNames.Date(),
-            ColumnNames.Steps(),
-        };
-
-        public IEnumerable<StepItem> BuildSummary()
-        {
-            return GetStepsByDay()
+            var stepsColumn = _stepsByDay
                 .GroupBy(s => new { s.Date.Year, s.Date.Month })
-                .Select(x => new StepItem(x.Key.Year, x.Key.Month, x.Sum(r => r.Steps)));
+                .Aggregate(new Column<LocalDate> {Header = ColumnNames.Steps()},
+                    (cols, step) =>
+                    {
+                        var date = new LocalDate(step.Key.Year, step.Key.Month, 1);
+                        cols.Add(date, step.Sum(r => r.Steps));
+
+                        return cols;
+                    });
+
+            yield return stepsColumn;
         }
 
-        public IEnumerable<StepItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
+        public IEnumerable<Column<LocalDate>> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
-            return GetStepsByDay().Where(x => dateRange.Includes(x.Date.AtStartOfDayInZone(_zone), Clusivity.Inclusive));
+            var stepsColumn = _stepsByDay
+                .Where(x => dateRange.Includes(x.Date.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.Steps(), RangeName = "steps" },
+                    (cols, step) =>
+                    {
+                        cols.Add(step.Date, step.Steps);
+
+                        return cols;
+                    });
+
+            yield return stepsColumn;
         }
 
-        private IEnumerable<StepItem> GetStepsByDay()
+        private static IEnumerable<StepItem> GetStepsByDay(IEnumerable<Record> records, DateTimeZone zone)
         {
-            return StepHelper.PrioritizeSteps(_records)
-                .Select(r => new { zoned = r.StartDate.InZone(_zone), r })
+            return StepHelper.PrioritizeSteps(records)
+                .Select(r => new { zoned = r.StartDate.InZone(zone), r })
                 .GroupBy(s => s.zoned.Date)
-                .Select(x => new StepItem(x.Key, (int)x.Sum(r => r.r.Value.SafeParse(0))))
-                .OrderByDescending(s => s.Date);
+                .Select(x => new StepItem{Date = x.Key, Steps = (int)x.Sum(r => r.r.Value.SafeParse(0))})
+                .OrderByDescending(s => s.Date)
+                ;
         }
 
-        public class StepItem : DatedItem
+        private class StepItem
         {
-            public StepItem(LocalDate date, int steps) : base(date)
-            {
-                Steps = steps;
-            }
-
-            public StepItem(int year, int month, int steps) : base(year, month)
-            {
-                Steps = steps;
-            }
-
-            public int Steps { get; }
-
+            public LocalDate Date { get; set; }
+            public int Steps { get; set; }
         }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using OfficeOpenXml;
+﻿using System.Linq;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class SettingsSheetBuilder : IRawSheetBuilder
+    public class SettingsSheetBuilder : IRawSheetBuilder<unit>
     {
         private readonly Settings.Settings _settings;
 
@@ -13,28 +11,26 @@ namespace HealthParse.Standard.Health.Sheets
             _settings = settings;
         }
 
-        public IEnumerable<object> BuildRawSheet()
+        public Dataset<unit> BuildRawSheet()
         {
-            return _settings
-                .Select((setting, i) => new
-                {
-                    setting.Name,
-                    Value = setting.Value.ToString(),
-                    setting.DefaultValue,
-                    setting.Description
-                });
-        }
+            var columns = _settings
+                .Aggregate(new
+                    {
+                        name = new Column<unit> { Header = ColumnNames.Settings.Name() },
+                        value = new Column<unit> { Header = ColumnNames.Settings.Value() },
+                        defaultValue = new Column<unit> { Header = ColumnNames.Settings.DefaultValue() },
+                        description = new Column<unit> { Header = ColumnNames.Settings.Description() },
+                    },
+                    (cols, s) =>
+                    {
+                        cols.name.Add(unit.v, s.Name);
+                        cols.value.Add(unit.v, s.Value.ToString()); // TODO not tostring...
+                        cols.defaultValue.Add(unit.v, s.DefaultValue);
+                        cols.description.Add(unit.v, s.Description);
+                        return cols;
+                    });
 
-        public void Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook)
-        {
+            return new Dataset<unit>(columns.name, columns.value, columns.defaultValue, columns.description);
         }
-
-        public IEnumerable<string> Headers => new []
-        {
-            ColumnNames.Settings.Name(),
-            ColumnNames.Settings.Value(),
-            ColumnNames.Settings.DefaultValue(),
-            ColumnNames.Settings.Description(),
-        };
     }
 }

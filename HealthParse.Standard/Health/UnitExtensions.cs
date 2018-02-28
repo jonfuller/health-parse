@@ -19,6 +19,10 @@ namespace HealthParse.Standard.Health
         {
             return target.Aggregate(Mass.Zero, (current, item) => current + selector(item));
         }
+        public static Energy Sum<T>(this IEnumerable<T> target, Func<T, Energy> selector)
+        {
+            return target.Aggregate(Energy.Zero, (current, item) => current + selector(item));
+        }
 
         public static Mass Average<T>(this IEnumerable<T> target, Func<T, Mass> selector)
         {

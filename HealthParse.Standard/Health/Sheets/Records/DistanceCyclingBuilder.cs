@@ -1,92 +1,84 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
-using OfficeOpenXml;
 using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class DistanceCyclingBuilder : IRawSheetBuilder, IMonthlySummaryBuilder<DistanceCyclingBuilder.CyclingItem>, ISummarySheetBuilder<DistanceCyclingBuilder.CyclingItem>
+    public class DistanceCyclingBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
     {
-        private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
         private readonly IEnumerable<DistanceCycling> _records;
 
         public DistanceCyclingBuilder(IEnumerable<Record> records, DateTimeZone zone, Settings.Settings settings)
         {
-            _zone = zone;
             _settings = settings;
             _records = records
                 .Where(r => r.Type == HKConstants.Records.DistanceCycling)
-                .Select(DistanceCycling.FromRecord)
+                .OrderByDescending(r => r.StartDate)
+                .Select(r => DistanceCycling.FromRecord(r, zone))
                 .ToList();
         }
-        public IEnumerable<object> BuildRawSheet()
+
+        public Dataset<unit> BuildRawSheet()
         {
-            return _records
-                .OrderByDescending(r => r.StartDate)
-                .Select(r => new
-                {
-                    Date = r.StartDate.InZone(_zone),
-                    Distance = r.Distance.As(_settings.DistanceUnit),
-                });
+            var columns = _records
+                .Aggregate(new
+                    {
+                        date = new Column<unit> { Header = ColumnNames.Date() },
+                        distance = new Column<unit> { Header = ColumnNames.Distance(_settings.DistanceUnit) },
+                    },
+                    (cols, r) =>
+                    {
+                        cols.date.Add(unit.v, r.StartDate);
+                        cols.distance.Add(unit.v, r.Distance.As(_settings.DistanceUnit));
+                        return cols;
+                    });
+
+            return new Dataset<unit>(columns.date, columns.distance);
         }
 
-        public void Customize(ExcelWorksheet _, ExcelWorkbook workbook)
+        public IEnumerable<Column<LocalDate>> BuildSummary()
         {
+            var distanceColumn = _records
+                .GroupBy(s => new { s.StartDate.Year, s.StartDate.Month })
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit) },
+                    (col, r) =>
+                    {
+                        col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Distance).As(_settings.DistanceUnit));
+                        return col;
+                    });
+
+            yield return distanceColumn;
         }
 
-        public IEnumerable<string> Headers => new[]
+        public IEnumerable<Column<LocalDate>> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
-            ColumnNames.Date(),
-            ColumnNames.Distance(_settings.DistanceUnit),
-        };
+            var distanceColumn = _records
+                .Where(x => dateRange.Includes(x.StartDate, Clusivity.Inclusive))
+                .GroupBy(x => x.StartDate.Date)
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit) },
+                    (col, r) =>
+                    {
+                        col.Add(r.Key, r.Sum(c => c.Distance).As(_settings.DistanceUnit));
+                        return col;
+                    });
 
-        public IEnumerable<CyclingItem> BuildSummary()
-        {
-            return _records
-                .Select(record => new {zoned = record.StartDate.InZone(_zone), record})
-                .GroupBy(s => new { s.zoned.Year, s.zoned.Month })
-                .Select(x => new CyclingItem(x.Key.Year, x.Key.Month, x.Sum(c => c.record.Distance)));
-        }
-
-        public IEnumerable<CyclingItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
-        {
-            return _records
-                .Select(record => new { zoned = record.StartDate.InZone(_zone), record })
-                .Where(x => dateRange.Includes(x.zoned, Clusivity.Inclusive))
-                .GroupBy(x => x.zoned.Date)
-                .Select(x => new CyclingItem(x.Key, x.Sum(c => c.record.Distance)))
-                .OrderBy(x => x.Date);
+            yield return distanceColumn;
         }
 
         private class DistanceCycling
         {
-            public Instant StartDate { get; private set; }
+            public ZonedDateTime StartDate { get; private set; }
             public Length Distance { get; private set; }
-            public static DistanceCycling FromRecord(Record record)
+            public static DistanceCycling FromRecord(Record record, DateTimeZone zone)
             {
                 return new DistanceCycling
                 {
-                    StartDate = record.StartDate,
+                    StartDate = record.StartDate.InZone(zone),
                     Distance = RecordParser.Distance(record)
                 };
             }
-        }
-
-        public class CyclingItem : DatedItem
-        {
-            public CyclingItem(LocalDate date, Length distance) : base(date)
-            {
-                Distance = distance;
-            }
-
-            public CyclingItem(int year, int month, Length distance) : base(year, month)
-            {
-                Distance = distance;
-            }
-
-            public Length Distance { get; }
         }
     }
 }

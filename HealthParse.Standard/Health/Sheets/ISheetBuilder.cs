@@ -1,37 +1,18 @@
 ﻿using System.Collections.Generic;
 using NodaTime;
-using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public interface IRawSheetBuilder
+    public interface IRawSheetBuilder<TKey>
     {
-        IEnumerable<object> BuildRawSheet();
-        IEnumerable<string> Headers { get; }
-        void Customize(ExcelWorksheet worksheet, ExcelWorkbook workbook);
+        Dataset<TKey> BuildRawSheet();
     }
-
-    public interface IMonthlySummaryBuilder<out TItem> where TItem : DatedItem
+    public interface IMonthlySummaryBuilder<TKey>
     {
-        IEnumerable<TItem> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange);
+        IEnumerable<Column<TKey>> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange);
     }
-    public interface ISummarySheetBuilder<out TItem> where TItem : DatedItem
+    public interface ISummarySheetBuilder<TKey>
     {
-        IEnumerable<TItem> BuildSummary();
-    }
-
-    public class DatedItem
-    {
-        public DatedItem(int year, int month)
-            : this(new LocalDate(year, month, 1))
-        {
-        }
-
-        protected DatedItem(LocalDate date)
-        {
-            Date = date;
-        }
-
-        public LocalDate Date { get; }
+        IEnumerable<Column<TKey>> BuildSummary();
     }
 }

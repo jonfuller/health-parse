@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HealthParse.Standard.Health.Sheets;
 using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health
@@ -21,15 +22,56 @@ namespace HealthParse.Standard.Health
         {
             {typeof(DateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" },
         };
-        public static void WriteData(this ExcelWorksheet target, IEnumerable<object> dataRows, bool omitEmptyColumns = true, IEnumerable<string> headers = null)
+        public static void WriteData<T>(this ExcelWorksheet sheet, Dataset<T> sheetData, bool omitEmptyColumns = true)
         {
-            var rows = dataRows.ToList();
-            GetLines(rows, headers)
-                .SelectMany((row, rowNum) => row.Select((value, columnNum) => new { value, rowNum, columnNum }))
-                .ToList()
-                .ForEach(item =>
+            if (sheetData.Keyed)
+            {
+                WriteKeyColumn(sheetData.KeyColumn, 1, sheet);
+            }
+            sheetData.Columns
+                .Where(c => !omitEmptyColumns || c.Any())
+                .Select((column, i) => new { column, i})
+                .ToList().ForEach(c =>
                 {
-                    var cell = target.Cells[item.rowNum + 1, item.columnNum + 1];
+                    var columnNumber = sheetData.Keyed
+                        ? c.i + 2
+                        : c.i + 1;
+                    var columnLetter = ColumnLetter(columnNumber);
+
+                    if (sheetData.Keyed)
+                        WriteColumn(c.column, sheetData.KeyColumn, columnNumber, sheet);
+                    else
+                    {
+                        WriteColumn(c.column, c.i+1, sheet);
+                    }
+
+                    if (c.column.RangeName != null)
+                    {
+                        sheet.Workbook.Names.Add(
+                            $"{sheet.Name.Rangify()}_{c.column.RangeName}",
+                            sheet.Cells[$"{columnLetter}:{columnLetter}"]);
+                    }
+                });
+        }
+
+        private static string ColumnLetter(int i)
+        {
+            return new string((char) (i + 'A'), 1);
+        }
+
+        private static void WriteKeyColumn<T>(KeyColumn<T> keyColumn, int colNum, ExcelWorksheet sheet)
+        {
+            WriteColumn(keyColumn, keyColumn, colNum, sheet);
+        }
+        private static void WriteColumn<T>(Column<T> column, KeyColumn<T> keyColumn, int columnNum, ExcelWorksheet target)
+        {
+            target.Cells[1, columnNum].Value = column.Header;
+            keyColumn
+                .OrderByDescending(c => c)
+                .Select((key, i) => new { value = column[key], rowNum = i + 2 })
+                .ToList().ForEach(item =>
+                {
+                    var cell = target.Cells[item.rowNum, columnNum];
                     var formatter = item.value != null && Formatters.ContainsKey(item.value.GetType())
                         ? Formatters[item.value.GetType()]
                         : range => { };
@@ -37,37 +79,22 @@ namespace HealthParse.Standard.Health
                     cell.Value = item.value;
                     formatter(cell);
                 });
-
-
-            if (omitEmptyColumns) OmitEmptyColumns(target);
         }
-
-        private static void OmitEmptyColumns(ExcelWorksheet sheet)
+        private static void WriteColumn<T>(Column<T> column, int columnNum, ExcelWorksheet target)
         {
-            Enumerable.Range(1, sheet.Dimension.Columns)
-                .Select(colNum => new { colNum, colRange = sheet.Cells[2, colNum, sheet.Dimension.End.Row, colNum]})
-                .Select(x => new { x.colNum, empty = x.colRange.All(c => c.Value == null)})
-                .Where(x => x.empty)
-                .Select(x => x.colNum)
-                .Reverse()
-                .ToList()
-                .ForEach(sheet.DeleteColumn);
-        }
+            target.Cells[1, columnNum].Value = column.Header;
+            column.Values
+                .Select((value, i) => new { value, rowNum = i + 2 })
+                .ToList().ForEach(item =>
+                {
+                    var cell = target.Cells[item.rowNum, columnNum];
+                    var formatter = item.value != null && Formatters.ContainsKey(item.value.GetType())
+                        ? Formatters[item.value.GetType()]
+                        : range => { };
 
-        private static IEnumerable<IEnumerable<object>> GetLines(IList<object> rows, IEnumerable<string> headers)
-        {
-            if (!rows.Any())
-            {
-                yield break;
-            }
-
-            yield return headers;
-
-            var props = rows.First().GetType().GetProperties();
-            foreach (var row in rows)
-            {
-                yield return props.Select(prop => prop.GetValue(row));
-            }
+                    cell.Value = item.value;
+                    formatter(cell);
+                });
         }
     }
 }

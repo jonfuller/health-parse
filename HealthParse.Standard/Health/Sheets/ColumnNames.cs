@@ -15,7 +15,7 @@ namespace HealthParse.Standard.Health.Sheets
         public static string Steps() => "Steps";
         public static string BodyFatPercentage() => "Body Fat (%)";
         public static string AverageBodyFatPercentage() => "Body Fat (%, avg)";
-        public static string CyclingDistance(LengthUnit unit) => $"Cycling {ColumnNames.Distance(unit)}";
+        public static string CyclingDistance(LengthUnit unit) => $"Cycling {Distance(unit)}";
         public static string StandHours() => "Stand Hours";
         public static string AverageStandHours() => "Average Stand Hours";
 
@@ -29,41 +29,13 @@ namespace HealthParse.Standard.Health.Sheets
 
         public static class Workout
         {
-            public static class Cycling
-            {
-                public static string Distance(LengthUnit unit) => $"Cycling {ColumnNames.Distance(unit)}";
-                public static string Duration(DurationUnit unit) => $"Cycling {ColumnNames.Duration(unit)}";
-            }
-            public static class Running
-            {
-                public static string Distance(LengthUnit unit) => $"Running {ColumnNames.Distance(unit)}";
-                public static string Duration(DurationUnit unit) => $"Running {ColumnNames.Duration(unit)}";
-            }
-            public static class Walking
-            {
-                public static string Distance(LengthUnit unit) => $"Walking {ColumnNames.Distance(unit)}";
-                public static string Duration(DurationUnit unit) => $"Walking {ColumnNames.Duration(unit)}";
-            }
-
-            public static class Hiit
-            {
-                public static string Duration(DurationUnit unit) => $"HIIT {ColumnNames.Duration(unit)}";
-            }
-
-            public static class Play
-            {
-                public static string Duration(DurationUnit unit) => $"Play {ColumnNames.Duration(unit)}";
-            }
-
-            public static class Elliptical
-            {
-                public static string Duration(DurationUnit unit) => $"Elliptical {ColumnNames.Duration(unit)}";
-            }
-
-            public static class StrengthTraining
-            {
-                public static string Duration(DurationUnit unit) => $"Strength {ColumnNames.Duration(unit)}";
-            }
+            public static string Cycling() => "Cycling";
+            public static string Running() => "Running";
+            public static string Walking() => "Walking";
+            public static string HIIT() => "HIIT";
+            public static string Play() => "Play";
+            public static string Elliptical() => "Elliptical";
+            public static string StrengthTraining() => "Strength";
         }
     }
 }

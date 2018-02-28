@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets.Workouts
@@ -6,15 +7,7 @@ namespace HealthParse.Standard.Health.Sheets.Workouts
     public class EllipticalWorkoutBuilder : WorkoutBuilder
     {
         public EllipticalWorkoutBuilder(IEnumerable<Workout> workouts, DateTimeZone zone, Settings.Settings settings)
-            : base(workouts, HKConstants.Workouts.Elliptical, zone, r => new
-                {
-                    date = r.StartDate.InZone(zone),
-                    duration = r.Duration.As(settings.DurationUnit),
-                    burn = r.Energy.As(settings.EnergyUnit),
-                },
-                ColumnNames.Date(),
-                ColumnNames.Duration(settings.DurationUnit),
-                ColumnNames.EnergyBurned(settings.EnergyUnit))
+            : base(workouts, HKConstants.Workouts.Elliptical, ColumnNames.Workout.Elliptical(), zone, settings)
         {
         }
     }
