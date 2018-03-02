@@ -32,6 +32,10 @@ namespace HealthParse.Standard.Settings
             {
                 return CoerceMass(value);
             }
+            if (targetType == typeof(EnergyUnit))
+            {
+                return CoerceEnergy(value);
+            }
             if (targetType == typeof(CustomSheetsPlacement))
             {
                 return CoerceEnum((string) value, CustomSheetsPlacement.Last);
@@ -72,6 +76,20 @@ namespace HealthParse.Standard.Settings
                 return Enum.TryParse(value.ToString(), true, out MassUnit unit)
                     ? unit
                     : MassUnit.Pound;
+            }
+        }
+
+        private static EnergyUnit CoerceEnergy(object value)
+        {
+            try
+            {
+                return Energy.ParseUnit(value.ToString());
+            }
+            catch (Exception)
+            {
+                return Enum.TryParse(value.ToString(), true, out EnergyUnit unit)
+                    ? unit
+                    : EnergyUnit.Kilocalorie;
             }
         }
 
