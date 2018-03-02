@@ -129,32 +129,28 @@ namespace HealthParse.Standard.Health
 
             sheetBuilders
                 .Where(s => s.builder != null)
-                .ToList().ForEach(s =>
-                {
-                    var builderTypes = s.builder
-                        .GetType()
-                        .GetInterfaces()
-                        .Where(t => t.IsGenericType)
-                        .Single(t => t.GetGenericTypeDefinition() == typeof(IRawSheetBuilder<>))
-                        .GetGenericArguments();
+                .ToList().ForEach(s => AddSheet(workbook, settings, s.builder, s.sheetName));
 
-                    var openAddSheet = typeof(ExcelReport).GetMethod(nameof(AddSheet), BindingFlags.Static|BindingFlags.NonPublic);
-                    var closedAddSheet = openAddSheet.MakeGenericMethod(builderTypes);
-
-                    closedAddSheet.Invoke(null, new[]{s.builder, s.sheetName, workbook, settings});
-                });
-
-            foreach (var customSheet in customSheetsList)
-            {
-                workbook.Worksheets.Add(customSheet.Name, customSheet);
-            }
-
-            PlaceCustomSheets(
+            workbook.PlaceCustomSheets(
                 settings.CustomSheetsPlacement,
                 customSheetsList,
-                workbook.Worksheets,
                 summarySheetName,
                 monthBuilders.Select(b => b.sheetName).ToList());
+        }
+
+        private static void AddSheet(ExcelWorkbook workbook, Settings.Settings settings, object builder, string sheetName)
+        {
+            var builderTypes = builder
+                .GetType()
+                .GetInterfaces()
+                .Where(t => t.IsGenericType)
+                .Single(t => t.GetGenericTypeDefinition() == typeof(IRawSheetBuilder<>))
+                .GetGenericArguments();
+
+            var openAddSheet = typeof(ExcelReport).GetMethod(nameof(AddSheet), BindingFlags.Static | BindingFlags.NonPublic);
+            var closedAddSheet = openAddSheet.MakeGenericMethod(builderTypes);
+
+            closedAddSheet.Invoke(null, new[] {builder, sheetName, workbook, settings});
         }
 
         private static void AddSheet<T>(IRawSheetBuilder<T> builder, string sheetName, ExcelWorkbook workbook, Settings.Settings settings)
@@ -167,40 +163,6 @@ namespace HealthParse.Standard.Health
                 var sheet = workbook.Worksheets.Add(sheetName);
 
                 sheet.WriteData(sheetData);
-            }
-        }
-
-        private static void PlaceCustomSheets(CustomSheetsPlacement placement, IEnumerable<ExcelWorksheet> customSheets, ExcelWorksheets sheets, string summarySheetName, IList<string> monthSummaryNames)
-        {
-            switch (placement)
-            {
-                case CustomSheetsPlacement.AfterSummary:
-                    foreach (var customSheet in customSheets)
-                    {
-                        sheets.MoveAfter(customSheet.Name, summarySheetName);
-                    }
-                    break;
-                case CustomSheetsPlacement.AfterMonthlySummaries:
-                    if (monthSummaryNames.IsEmpty()) break;
-                    var lastMonth = monthSummaryNames.Last();
-
-                    foreach (var customSheet in customSheets)
-                    {
-                        sheets.MoveAfter(customSheet.Name, lastMonth);
-                    }
-
-                    break;
-                case CustomSheetsPlacement.First:
-                    foreach (var customSheet in customSheets)
-                    {
-                        sheets.MoveToStart(customSheet.Name);
-                    }
-
-                    break;
-                case CustomSheetsPlacement.Last:
-                default:
-                    // do nothing, they're already at the end
-                    break;
             }
         }
     }

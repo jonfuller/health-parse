@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HealthParse.Standard.Health.Sheets;
+using HealthParse.Standard.Settings;
 using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health
@@ -95,6 +96,50 @@ namespace HealthParse.Standard.Health
                     cell.Value = item.value;
                     formatter(cell);
                 });
+        }
+
+        public static void PlaceCustomSheets(this ExcelWorkbook workbook,
+            CustomSheetsPlacement placement,
+            IEnumerable<ExcelWorksheet> customSheets,
+            string summarySheetName,
+            IList<string> monthSummaryNames)
+        {
+            var customSheetsList = customSheets.ToList();
+            foreach (var customSheet in customSheetsList)
+            {
+                workbook.Worksheets.Add(customSheet.Name, customSheet);
+            }
+
+            switch (placement)
+            {
+                case CustomSheetsPlacement.AfterSummary:
+                    foreach (var customSheet in customSheetsList)
+                    {
+                        workbook.Worksheets.MoveAfter(customSheet.Name, summarySheetName);
+                    }
+                    break;
+                case CustomSheetsPlacement.AfterMonthlySummaries:
+                    if (monthSummaryNames.IsEmpty()) break;
+                    var lastMonth = monthSummaryNames.Last();
+
+                    foreach (var customSheet in customSheetsList)
+                    {
+                        workbook.Worksheets.MoveAfter(customSheet.Name, lastMonth);
+                    }
+
+                    break;
+                case CustomSheetsPlacement.First:
+                    foreach (var customSheet in customSheetsList)
+                    {
+                        workbook.Worksheets.MoveToStart(customSheet.Name);
+                    }
+
+                    break;
+                case CustomSheetsPlacement.Last:
+                default:
+                    // do nothing, they're already at the end
+                    break;
+            }
         }
     }
 }
