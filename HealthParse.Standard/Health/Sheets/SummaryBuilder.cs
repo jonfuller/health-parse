@@ -15,7 +15,7 @@ namespace HealthParse.Standard.Health.Sheets
             IEnumerable<Workout> workouts,
             DateTimeZone zone,
             StepBuilder stepBuilder,
-            StandBuilder standBuilder,
+            GeneralRecordsBuilder generalRecordsBuilder,
             CyclingWorkoutBuilder cyclingBuilder,
             PlayWorkoutBuilder playBuilder,
             EllipticalWorkoutBuilder ellipticalBuilder,
@@ -42,7 +42,7 @@ namespace HealthParse.Standard.Health.Sheets
             _columns = Enumerable.Empty<Column<LocalDate>>()
                     .Concat(stepBuilder.BuildSummary())
                     .Concat(bodyFatBuilder.BuildSummary())
-                    .Concat(standBuilder.BuildSummary())
+                    .Concat(generalRecordsBuilder.BuildSummary())
                     .Concat(massBuilder.BuildSummary())
                     .Concat(distanceCyclingBuilder.BuildSummary())
                     .Concat(cyclingBuilder.BuildSummary())

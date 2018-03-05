@@ -7,10 +7,12 @@ namespace HealthParse.Standard.Health
 {
     public static class UnitExtensions
     {
+
         public static Length Sum<T>(this IEnumerable<T> target, Func<T, Length> selector)
         {
             return target.Aggregate(Length.Zero, (current, item) => current + selector(item));
         }
+
         public static Duration Sum<T>(this IEnumerable<T> target, Func<T, Duration> selector)
         {
             return target.Aggregate(Duration.Zero, (current, item) => current + selector(item));

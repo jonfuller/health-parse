@@ -52,12 +52,12 @@ namespace HealthParse.Standard.Health
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone, settings);
             var massBuilder = new MassBuilder(records, zone, settings);
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
-            var standHoursBuilder = new StandBuilder(records, zone);
+            var generalRecordsBuilder = new GeneralRecordsBuilder(records, zone, settings);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
             var summaryBuilder = new SummaryBuilder(records, workouts, zone,
                 stepBuilder,
-                standHoursBuilder,
+                generalRecordsBuilder,
                 cyclingWorkoutBuilder,
                 playWorkoutBuilder,
                 ellipticalWorkoutBuilder,
@@ -88,7 +88,7 @@ namespace HealthParse.Standard.Health
                         m.Month,
                         zone,
                         stepBuilder,
-                        standHoursBuilder,
+                        generalRecordsBuilder,
                         cyclingWorkoutBuilder,
                         playWorkoutBuilder,
                         ellipticalWorkoutBuilder,
@@ -115,7 +115,7 @@ namespace HealthParse.Standard.Health
                 .Concat(new { builder = (object)stepBuilder, sheetName = "Steps", omitEmptyColumns = true })
                 .Concat(new { builder = (object)massBuilder, sheetName = "Mass (Weight)", omitEmptyColumns = true })
                 .Concat(new { builder = (object)bodyFatBuilder, sheetName = "Body Fat %", omitEmptyColumns = true })
-                .Concat(new { builder = (object)standHoursBuilder, sheetName = "Stand Hours", omitEmptyColumns = true })
+                .Concat(new { builder = (object)generalRecordsBuilder, sheetName = "General Records", omitEmptyColumns = true })
                 .Concat(new { builder = (object)distanceCyclingBuilder, sheetName = "Cycling (Distance)", omitEmptyColumns = true })
                 .Concat(new { builder = (object)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)", omitEmptyColumns = true })
                 .Concat(new { builder = (object)strengthTrainingBuilder, sheetName = "Strength Training", omitEmptyColumns = true })
@@ -147,13 +147,13 @@ namespace HealthParse.Standard.Health
                 .Single(t => t.GetGenericTypeDefinition() == typeof(IRawSheetBuilder<>))
                 .GetGenericArguments();
 
-            var openAddSheet = typeof(ExcelReport).GetMethod(nameof(AddSheet), BindingFlags.Static | BindingFlags.NonPublic);
+            var openAddSheet = typeof(ExcelReport).GetMethod(nameof(AddSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
             var closedAddSheet = openAddSheet.MakeGenericMethod(builderTypes);
 
             closedAddSheet.Invoke(null, new[] {builder, sheetName, workbook, settings});
         }
 
-        private static void AddSheet<T>(IRawSheetBuilder<T> builder, string sheetName, ExcelWorkbook workbook, Settings.Settings settings)
+        private static void AddSheetTyped<T>(IRawSheetBuilder<T> builder, string sheetName, ExcelWorkbook workbook, Settings.Settings settings)
         {
             var sheetData = builder.BuildRawSheet();
             var keepEmptySheets = !settings.OmitEmptySheets;

@@ -9,6 +9,9 @@
             public const string StepCount = "HKQuantityTypeIdentifierStepCount";
             public const string DistanceCycling = "HKQuantityTypeIdentifierDistanceCycling";
 
+            public const string ExerciseTime = "HKQuantityTypeIdentifierAppleExerciseTime";
+            public const string FlightsClimbed = "HKQuantityTypeIdentifierFlightsClimbed";
+
             public static class Standing
             {
                 public const string StandType = "HKCategoryTypeIdentifierAppleStandHour";

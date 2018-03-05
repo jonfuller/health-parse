@@ -14,7 +14,7 @@ namespace HealthParse.Standard.Health.Sheets
 
         public MonthSummaryBuilder(int targetYear, int targetMonth, DateTimeZone zone,
             StepBuilder stepBuilder,
-            StandBuilder standBuilder,
+            GeneralRecordsBuilder generalRecordsBuilder,
             CyclingWorkoutBuilder cyclingBuilder,
             PlayWorkoutBuilder playBuilder,
             EllipticalWorkoutBuilder ellipticalBuilder,
@@ -35,7 +35,7 @@ namespace HealthParse.Standard.Health.Sheets
             _columns = Enumerable.Empty<Column<LocalDate>>()
                 .Concat(stepBuilder.BuildSummaryForDateRange(range))
                 .Concat(bodyFatBuilder.BuildSummaryForDateRange(range))
-                .Concat(standBuilder.BuildSummaryForDateRange(range))
+                .Concat(generalRecordsBuilder.BuildSummaryForDateRange(range))
                 .Concat(massBuilder.BuildSummaryForDateRange(range))
                 .Concat(distanceCyclingBuilder.BuildSummaryForDateRange(range))
                 .Concat(cyclingBuilder.BuildSummaryForDateRange(range))

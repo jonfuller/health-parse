@@ -18,6 +18,10 @@ namespace HealthParse.Standard.Health.Sheets
         public static string CyclingDistance(LengthUnit unit) => $"Cycling {Distance(unit)}";
         public static string StandHours() => "Stand Hours";
         public static string AverageStandHours() => "Average Stand Hours";
+        public static string TotalFlightsClimbed() => "Total Flights Climbed";
+        public static string FlightsClimbed() => "Flights Climbed";
+        public static string TotalExerciseDuration(DurationUnit unit) => $"Total Exercise Time ({unit})";
+        public static string ExerciseDuration(DurationUnit unit) => $"Exercise Time ({unit})";
 
         public static class Settings
         {
