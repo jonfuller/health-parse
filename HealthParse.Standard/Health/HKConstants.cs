@@ -11,6 +11,8 @@
 
             public const string ExerciseTime = "HKQuantityTypeIdentifierAppleExerciseTime";
             public const string FlightsClimbed = "HKQuantityTypeIdentifierFlightsClimbed";
+            public const string BasalEnergyBurned = "HKQuantityTypeIdentifierBasalEnergyBurned";
+            public const string ActiveEnergyBurned = "HKQuantityTypeIdentifierActiveEnergyBurned";
 
             public static class Standing
             {

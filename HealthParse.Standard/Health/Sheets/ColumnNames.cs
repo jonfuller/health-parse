@@ -22,6 +22,10 @@ namespace HealthParse.Standard.Health.Sheets
         public static string FlightsClimbed() => "Flights Climbed";
         public static string TotalExerciseDuration(DurationUnit unit) => $"Total Exercise Time ({unit})";
         public static string ExerciseDuration(DurationUnit unit) => $"Exercise Time ({unit})";
+        public static string BasalEnergy(EnergyUnit unit) => $"Basal Energy ({unit})";
+        public static string ActiveEnergy(EnergyUnit unit) => $"Active Energy ({unit})";
+        public static string AverageBasalEnergy(EnergyUnit unit) => $"Average {BasalEnergy(unit)}";
+        public static string AverageActiveEnergy(EnergyUnit unit) => $"Average {ActiveEnergy(unit)}";
 
         public static class Settings
         {
