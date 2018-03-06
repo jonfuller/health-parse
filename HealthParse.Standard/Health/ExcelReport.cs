@@ -7,7 +7,6 @@ using HealthParse.Standard.Health.Export;
 using HealthParse.Standard.Health.Sheets;
 using HealthParse.Standard.Health.Sheets.Records;
 using HealthParse.Standard.Health.Sheets.Workouts;
-using HealthParse.Standard.Settings;
 using NodaTime;
 using OfficeOpenXml;
 
@@ -128,8 +127,10 @@ namespace HealthParse.Standard.Health
                 .ToList();
 
             sheetBuilders
-                .Where(s => s.builder != null)
-                .ToList().ForEach(s => AddSheet(workbook, settings, s.builder, s.sheetName));
+                .Select(b => new{sheet=workbook.Worksheets.Add(b.sheetName), b.builder})
+                .AsParallel()
+                .AsOrdered()
+                .ForAll(s => WriteSheet(s.sheet, settings, s.builder));
 
             workbook.PlaceCustomSheets(
                 settings.CustomSheetsPlacement,
@@ -138,7 +139,7 @@ namespace HealthParse.Standard.Health
                 monthBuilders.Select(b => b.sheetName).ToList());
         }
 
-        private static void AddSheet(ExcelWorkbook workbook, Settings.Settings settings, object builder, string sheetName)
+        private static void WriteSheet(ExcelWorksheet sheet, Settings.Settings settings, object builder)
         {
             var builderTypes = builder
                 .GetType()
@@ -147,21 +148,19 @@ namespace HealthParse.Standard.Health
                 .Single(t => t.GetGenericTypeDefinition() == typeof(IRawSheetBuilder<>))
                 .GetGenericArguments();
 
-            var openAddSheet = typeof(ExcelReport).GetMethod(nameof(AddSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
+            var openAddSheet = typeof(ExcelReport).GetMethod(nameof(WriteSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
             var closedAddSheet = openAddSheet.MakeGenericMethod(builderTypes);
 
-            closedAddSheet.Invoke(null, new[] {builder, sheetName, workbook, settings});
+            closedAddSheet.Invoke(null, new[] {builder, sheet, settings});
         }
 
-        private static void AddSheetTyped<T>(IRawSheetBuilder<T> builder, string sheetName, ExcelWorkbook workbook, Settings.Settings settings)
+        private static void WriteSheetTyped<T>(IRawSheetBuilder<T> builder, ExcelWorksheet sheet, Settings.Settings settings)
         {
             var sheetData = builder.BuildRawSheet();
             var keepEmptySheets = !settings.OmitEmptySheets;
 
             if (keepEmptySheets || sheetData.Any())
             {
-                var sheet = workbook.Worksheets.Add(sheetName);
-
                 sheet.WriteData(sheetData);
             }
         }
