@@ -107,23 +107,21 @@ namespace HealthParse.Standard.Health
                     };
                 }).ToList();
 
-
-            var summarySheetName = "Overall Summary";
-            var sheetBuilders = new[] { new { builder = (object)summaryBuilder, sheetName = summarySheetName, omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary } }
+            var sheetBuilders = new[] { new { builder = (object)summaryBuilder, sheetName = SheetNames.Summary, omitEmptyColumns = settings.OmitEmptyColumnsOnOverallSummary } }
                 .Concat(monthBuilders)
-                .Concat(new { builder = (object)stepBuilder, sheetName = "Steps", omitEmptyColumns = true })
-                .Concat(new { builder = (object)massBuilder, sheetName = "Mass (Weight)", omitEmptyColumns = true })
-                .Concat(new { builder = (object)bodyFatBuilder, sheetName = "Body Fat %", omitEmptyColumns = true })
-                .Concat(new { builder = (object)generalRecordsBuilder, sheetName = "General Records", omitEmptyColumns = true })
-                .Concat(new { builder = (object)distanceCyclingBuilder, sheetName = "Cycling (Distance)", omitEmptyColumns = true })
-                .Concat(new { builder = (object)cyclingWorkoutBuilder, sheetName = "Cycling (Workouts)", omitEmptyColumns = true })
-                .Concat(new { builder = (object)strengthTrainingBuilder, sheetName = "Strength Training", omitEmptyColumns = true })
-                .Concat(new { builder = (object)hiitBuilder, sheetName = "HIIT", omitEmptyColumns = true })
-                .Concat(new { builder = (object)runningWorkoutBuilder, sheetName = "Running", omitEmptyColumns = true })
-                .Concat(new { builder = (object)walkingWorkoutBuilder, sheetName = "Walking", omitEmptyColumns = true })
-                .Concat(new { builder = (object)ellipticalWorkoutBuilder, sheetName = "Elliptical", omitEmptyColumns = true })
-                .Concat(new { builder = (object)playWorkoutBuilder, sheetName = "Play", omitEmptyColumns = true })
-                .Concat(new { builder = (object)settingsBuilder, sheetName = "Settings", omitEmptyColumns = true })
+                .Concat(new { builder = (object)stepBuilder, sheetName = SheetNames.Steps, omitEmptyColumns = true })
+                .Concat(new { builder = (object)massBuilder, sheetName = SheetNames.Mass, omitEmptyColumns = true })
+                .Concat(new { builder = (object)bodyFatBuilder, sheetName = SheetNames.BodyFat, omitEmptyColumns = true })
+                .Concat(new { builder = (object)generalRecordsBuilder, sheetName = SheetNames.GeneralRecords, omitEmptyColumns = true })
+                .Concat(new { builder = (object)distanceCyclingBuilder, sheetName = SheetNames.CyclingDistance, omitEmptyColumns = true })
+                .Concat(new { builder = (object)cyclingWorkoutBuilder, sheetName = SheetNames.CyclingWorkouts, omitEmptyColumns = true })
+                .Concat(new { builder = (object)strengthTrainingBuilder, sheetName = SheetNames.StrengthTraining, omitEmptyColumns = true })
+                .Concat(new { builder = (object)hiitBuilder, sheetName = SheetNames.Hiit, omitEmptyColumns = true })
+                .Concat(new { builder = (object)runningWorkoutBuilder, sheetName = SheetNames.Running, omitEmptyColumns = true })
+                .Concat(new { builder = (object)walkingWorkoutBuilder, sheetName = SheetNames.Walking, omitEmptyColumns = true })
+                .Concat(new { builder = (object)ellipticalWorkoutBuilder, sheetName = SheetNames.Elliptical, omitEmptyColumns = true })
+                .Concat(new { builder = (object)playWorkoutBuilder, sheetName = SheetNames.Play, omitEmptyColumns = true })
+                .Concat(new { builder = (object)settingsBuilder, sheetName = SheetNames.Settings, omitEmptyColumns = true })
                 .ToList();
 
             sheetBuilders
@@ -135,7 +133,7 @@ namespace HealthParse.Standard.Health
             workbook.PlaceCustomSheets(
                 settings.CustomSheetsPlacement,
                 customSheetsList,
-                summarySheetName,
+                SheetNames.Summary,
                 monthBuilders.Select(b => b.sheetName).ToList());
         }
 
