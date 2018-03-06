@@ -128,7 +128,15 @@ namespace HealthParse.Standard.Health
                 .Select(b => new{sheet=workbook.Worksheets.Add(b.sheetName), b.builder})
                 .AsParallel()
                 .AsOrdered()
-                .ForAll(s => WriteSheet(s.sheet, settings, s.builder));
+                .ForAll(s =>
+                {
+                    var wroteData = WriteSheet(s.sheet, s.builder);
+
+                    if (settings.OmitEmptySheets && !wroteData)
+                    {
+                        workbook.Worksheets.Delete(s.sheet);
+                    }
+                });
 
             workbook.PlaceCustomSheets(
                 settings.CustomSheetsPlacement,
@@ -137,7 +145,7 @@ namespace HealthParse.Standard.Health
                 monthBuilders.Select(b => b.sheetName).ToList());
         }
 
-        private static void WriteSheet(ExcelWorksheet sheet, Settings.Settings settings, object builder)
+        private static bool WriteSheet(ExcelWorksheet sheet, object builder)
         {
             var builderTypes = builder
                 .GetType()
@@ -149,18 +157,19 @@ namespace HealthParse.Standard.Health
             var openAddSheet = typeof(ExcelReport).GetMethod(nameof(WriteSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
             var closedAddSheet = openAddSheet.MakeGenericMethod(builderTypes);
 
-            closedAddSheet.Invoke(null, new[] {builder, sheet, settings});
+            return (bool)closedAddSheet.Invoke(null, new[] {builder, sheet});
         }
 
-        private static void WriteSheetTyped<T>(IRawSheetBuilder<T> builder, ExcelWorksheet sheet, Settings.Settings settings)
+        private static bool WriteSheetTyped<T>(IRawSheetBuilder<T> builder, ExcelWorksheet sheet)
         {
             var sheetData = builder.BuildRawSheet();
-            var keepEmptySheets = !settings.OmitEmptySheets;
-
-            if (keepEmptySheets || sheetData.Any())
+            if (sheetData.Any())
             {
                 sheet.WriteData(sheetData);
+                return true;
             }
+
+            return false;
         }
     }
 }
