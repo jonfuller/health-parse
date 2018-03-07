@@ -67,7 +67,9 @@ namespace HealthParse.Standard.Settings
         private void WriteCurrentSettings(string userId, Settings settings)
         {
             var toSerialize = settings
-                .Select(s => new {name = s.Name, value = s.Value.ToString()})
+                .Select(s => new {name = s.Name, value = s.JsonSerialization == SerializationBehavior.Nothing
+                    ? s.Value
+                    : s.Value.ToString()})
                 .ToArray();
 
             _storage.WriteSettingsFile(JsonConvert.SerializeObject(toSerialize), userId);

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using HealthParse.Standard.Settings;
 
 namespace HealthParse.Standard.Health.Sheets
 {
@@ -24,7 +25,9 @@ namespace HealthParse.Standard.Health.Sheets
                     (cols, s) =>
                     {
                         cols.name.Add(unit.v, s.Name);
-                        cols.value.Add(unit.v, s.Value.ToString()); // TODO not tostring...
+                        cols.value.Add(unit.v, s.ExcelSerialization == SerializationBehavior.Nothing
+                            ? s.Value
+                            : s.Value.ToString());
                         cols.defaultValue.Add(unit.v, s.DefaultValue);
                         cols.description.Add(unit.v, s.Description);
                         return cols;
