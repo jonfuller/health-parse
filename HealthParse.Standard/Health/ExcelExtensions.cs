@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HealthParse.Standard.Health.Sheets;
 using HealthParse.Standard.Settings;
+using NodaTime;
 using OfficeOpenXml;
 
 namespace HealthParse.Standard.Health
@@ -21,7 +22,8 @@ namespace HealthParse.Standard.Health
 
         private static readonly Dictionary<Type, Action<ExcelRange>> Formatters = new Dictionary<Type, Action<ExcelRange>>()
         {
-            {typeof(DateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" },
+            {typeof(LocalDate), range => range.Style.Numberformat.Format = "yyyy-mm-dd" }, // TODO
+            {typeof(ZonedDateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" }, // TODO
         };
         public static void WriteData<T>(this ExcelWorksheet sheet, Dataset<T> sheetData, bool omitEmptyColumns = true)
         {

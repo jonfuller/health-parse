@@ -26,7 +26,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                     },
                     (cols, r) =>
                     {
-                        cols.date.Add(unit.v, r.StartDate);
+                        cols.date.Add(unit.v, r.StartDate.InZone(_zone));
                         cols.bodyfat.Add(unit.v, r.Value.SafeParse(0));
                         return cols;
                     });
