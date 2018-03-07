@@ -42,7 +42,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
         {
             var distanceColumn = _records
                 .GroupBy(s => new { s.StartDate.Year, s.StartDate.Month })
-                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit) },
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit), RangeName = "total_cycling_distance" },
                     (col, r) =>
                     {
                         col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Distance).As(_settings.DistanceUnit));
@@ -57,7 +57,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
             var distanceColumn = _records
                 .Where(x => dateRange.Includes(x.StartDate, Clusivity.Inclusive))
                 .GroupBy(x => x.StartDate.Date)
-                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit) },
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit), RangeName = "total_cycling_distance"},
                     (col, r) =>
                     {
                         col.Add(r.Key, r.Sum(c => c.Distance).As(_settings.DistanceUnit));

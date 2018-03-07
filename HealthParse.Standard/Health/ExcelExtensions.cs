@@ -43,7 +43,7 @@ namespace HealthParse.Standard.Health
                         WriteColumn(c.column, sheetData.KeyColumn, columnNumber, sheet);
                     else
                     {
-                        WriteColumn(c.column, c.i+1, sheet);
+                        WriteColumn(c.column, columnNumber, sheet);
                     }
 
                     if (c.column.RangeName != null)
@@ -57,7 +57,7 @@ namespace HealthParse.Standard.Health
 
         private static string ColumnLetter(int i)
         {
-            return new string((char) (i + 'A'), 1);
+            return new string((char) (i + 'A' - 1), 1);
         }
 
         private static void WriteKeyColumn<T>(KeyColumn<T> keyColumn, int colNum, ExcelWorksheet sheet)

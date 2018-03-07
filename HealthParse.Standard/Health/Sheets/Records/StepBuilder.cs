@@ -38,7 +38,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
         {
             var stepsColumn = _stepsByDay
                 .GroupBy(s => new { s.Date.Year, s.Date.Month })
-                .Aggregate(new Column<LocalDate> {Header = ColumnNames.Steps()},
+                .Aggregate(new Column<LocalDate> {Header = ColumnNames.Steps(), RangeName = "steps"},
                     (cols, step) =>
                     {
                         var date = new LocalDate(step.Key.Year, step.Key.Month, 1);

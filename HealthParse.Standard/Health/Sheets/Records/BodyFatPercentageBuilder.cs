@@ -40,7 +40,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
                 .Select(g => new {date = g.Key, bodyFat = g.Min(x => x.Value.SafeParse(0))})
                 .GroupBy(s => new {s.date.Year, s.date.Month})
-                .Aggregate(new Column<LocalDate> {Header = ColumnNames.AverageBodyFatPercentage()},
+                .Aggregate(new Column<LocalDate> {Header = ColumnNames.AverageBodyFatPercentage(), RangeName = "avg_bodyfatpct"},
                     (col, r) =>
                     {
                         col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.bodyFat));
@@ -52,7 +52,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
 
         public IEnumerable<Column<LocalDate>> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
-            var bodyFat = new Column<LocalDate>(){Header = ColumnNames.BodyFatPercentage(), RangeName = "bodyfatpct" };
+            var bodyFat = new Column<LocalDate> {Header = ColumnNames.BodyFatPercentage(), RangeName = "bodyfatpct" };
 
             _records
                 .Where(r => dateRange.Includes(r.StartDate.InZone(_zone), Clusivity.Inclusive))

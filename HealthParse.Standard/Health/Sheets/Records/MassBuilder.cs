@@ -45,7 +45,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
                 .Select(g => new { date = g.Key, mass = g.Min(x => x.Value) })
                 .GroupBy(s => new { s.date.Year, s.date.Month })
-                .Aggregate(new Column<LocalDate> { Header = ColumnNames.AverageWeight(_settings.WeightUnit) },
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.AverageWeight(_settings.WeightUnit), RangeName = "mass"},
                     (col, r) =>
                     {
                         col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.mass).As(_settings.WeightUnit));
@@ -61,7 +61,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .Where(r => dateRange.Includes(r.StartDate.InZone(_zone), Clusivity.Inclusive))
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
                 .Select(g => new { date = g.Key, mass = g.Min(x => x.Value) })
-                .Aggregate(new Column<LocalDate> { Header = ColumnNames.Weight(_settings.WeightUnit) },
+                .Aggregate(new Column<LocalDate> { Header = ColumnNames.Weight(_settings.WeightUnit), RangeName = "mass"},
                     (col, r) =>
                     {
                         col.Add(r.date, r.mass.As(_settings.WeightUnit));

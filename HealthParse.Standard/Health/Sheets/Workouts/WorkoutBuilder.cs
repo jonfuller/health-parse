@@ -49,9 +49,9 @@ namespace HealthParse.Standard.Health.Sheets.Workouts
                 .GroupBy(r => new { r.StartDate.InZone(_zone).Date.Year, r.StartDate.InZone(_zone).Date.Month})
                 .Aggregate(new
                     {
-                        distance = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Distance(_settings.DistanceUnit)}" },
-                        energy = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.EnergyBurned(_settings.EnergyUnit)}" },
-                        duration = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Duration(_settings.DurationUnit)}" },
+                        distance = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Distance(_settings.DistanceUnit)}", RangeName = $"total_{_workoutColumnName}_distance"},
+                        energy = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.EnergyBurned(_settings.EnergyUnit)}", RangeName = $"total_{_workoutColumnName}_energy_burned"},
+                        duration = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Duration(_settings.DurationUnit)}", RangeName = $"total_{_workoutColumnName}_duration"},
                     },
                     (cols, r) =>
                     {
@@ -76,9 +76,9 @@ namespace HealthParse.Standard.Health.Sheets.Workouts
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
                 .Aggregate(new
                     {
-                        distance = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Distance(_settings.DistanceUnit)}" },
-                        energy = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.EnergyBurned(_settings.EnergyUnit)}" },
-                        duration = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Duration(_settings.DurationUnit)}" },
+                        distance = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Distance(_settings.DistanceUnit)}", RangeName = $"{_workoutColumnName}_distance"},
+                        energy = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.EnergyBurned(_settings.EnergyUnit)}", RangeName = $"{_workoutColumnName}_energy_burned"},
+                        duration = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Duration(_settings.DurationUnit)}", RangeName = $"{_workoutColumnName}_duration"},
                     },
                     (cols, r) =>
                     {
