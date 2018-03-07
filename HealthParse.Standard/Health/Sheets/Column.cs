@@ -23,7 +23,6 @@ namespace HealthParse.Standard.Health.Sheets
         public object this[TKey key] => _data.GetValue(key);
 
         public IEnumerable<object> Values => _data.Values;
-        public IEnumerable<TKey> Keys => _data.Keys;
 
         public IEnumerator<TKey> GetEnumerator()
         {
