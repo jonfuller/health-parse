@@ -16,5 +16,12 @@
         public const string Elliptical = "Elliptical";
         public const string Play = "Play";
         public const string Settings = "Settings";
+
+        public static class MonthSummary
+        {
+            public const string Current = "Month Summary - Current";
+            public const string Previous = "Month Summary - Previous";
+            public static string Name(int year, int month) => $"Month Summary - {year} - {month}";
+        }
     }
 }

@@ -79,9 +79,9 @@ namespace HealthParse.Standard.Health
                     var isPreviousMonth = m.Year == lastMonth.Year && m.Month == lastMonth.Month;
 
                     var sheetName =
-                          isCurrentMonth && settings.UseConstantNameForMostRecentMonthlySummarySheet ? "Month Summary - Current"
-                        : isPreviousMonth && settings.UseConstantNameForPreviousMonthlySummarySheet ? "Month Summary - Previous"
-                        : $"Month Summary - {m.Year} - {m.Month}";
+                          isCurrentMonth && settings.UseConstantNameForMostRecentMonthlySummarySheet ? SheetNames.MonthSummary.Current
+                        : isPreviousMonth && settings.UseConstantNameForPreviousMonthlySummarySheet ? SheetNames.MonthSummary.Previous
+                        : SheetNames.MonthSummary.Name(m.Year, m.Month);
 
                     var builder = new MonthSummaryBuilder(m.Year,
                         m.Month,
