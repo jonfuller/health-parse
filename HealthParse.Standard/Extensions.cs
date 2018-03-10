@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using HealthParse.Standard.Health.Sheets;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MimeKit;
 
@@ -10,6 +11,13 @@ namespace HealthParse.Standard
 {
     public static class Extensions
     {
+        public static Column<TKey> MakeColumn<TKey, TVal>(this IEnumerable<Tuple<TKey, TVal>> data, string header = null, string range = null)
+        {
+            return data.Aggregate(
+                new Column<TKey> { Header = header, RangeName = range },
+                (col, r) => { col.Add(r.Item1, r.Item2); return col; });
+        }
+
         public static TV GetValue<TK, TV>(this IDictionary<TK, TV> dict, TK key, TV defaultValue = default(TV))
         {
             return dict.TryGetValue(key, out var value) ? value : defaultValue;

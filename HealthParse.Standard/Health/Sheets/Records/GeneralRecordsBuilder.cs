@@ -86,74 +86,62 @@ namespace HealthParse.Standard.Health.Sheets.Records
 
             return new Dataset<LocalDate>(
                 new KeyColumn<LocalDate>(dates),
-                MakeColumn(_standing, ColumnNames.StandHours()),
-                MakeColumn(_flightsClimbed, ColumnNames.FlightsClimbed()),
-                MakeColumn(_exerciseTime, ColumnNames.ExerciseDuration(_settings.DurationUnit)),
-                MakeColumn(_basalEnergy, ColumnNames.BasalEnergy(_settings.EnergyUnit)),
-                MakeColumn(_activeEnergy, ColumnNames.ActiveEnergy(_settings.EnergyUnit)));
+                _standing.MakeColumn(ColumnNames.StandHours()),
+                _flightsClimbed.MakeColumn(ColumnNames.FlightsClimbed()),
+                _exerciseTime.MakeColumn(ColumnNames.ExerciseDuration(_settings.DurationUnit)),
+                _basalEnergy.MakeColumn(ColumnNames.BasalEnergy(_settings.EnergyUnit)),
+                _activeEnergy.MakeColumn(ColumnNames.ActiveEnergy(_settings.EnergyUnit)));
         }
 
         public IEnumerable<Column<LocalDate>> BuildSummary()
         {
-            var standingData = _standing
+            yield return _standing
                 .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)));
+                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .MakeColumn(ColumnNames.AverageStandHours(), "avg_stand_hours");
 
-            var flightsData = _flightsClimbed
+            yield return _flightsClimbed
                 .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Item2)));
+                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Item2)))
+                .MakeColumn(ColumnNames.TotalFlightsClimbed(), "total_flights");
 
-            var exerciseTimeData = _exerciseTime
+            yield return _exerciseTime
                 .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Item2)));
+                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Item2)))
+                .MakeColumn(ColumnNames.TotalExerciseDuration(_settings.DurationUnit), "total_exercise");
 
-            var basalEnergyData = _basalEnergy
+            yield return _basalEnergy
                 .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)));
+                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .MakeColumn(ColumnNames.AverageBasalEnergy(_settings.EnergyUnit), "avg_basal_energy");
 
-            var activeEnergyData = _activeEnergy
+            yield return _activeEnergy
                 .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)));
-
-            yield return MakeColumn(standingData, ColumnNames.AverageStandHours(), "avg_stand_hours");
-            yield return MakeColumn(flightsData, ColumnNames.TotalFlightsClimbed(), "total_flights");
-            yield return MakeColumn(exerciseTimeData, ColumnNames.TotalExerciseDuration(_settings.DurationUnit), "total_exercise");
-            yield return MakeColumn(basalEnergyData, ColumnNames.AverageBasalEnergy(_settings.EnergyUnit), "avg_basal_energy");
-            yield return MakeColumn(activeEnergyData, ColumnNames.AverageActiveEnergy(_settings.EnergyUnit), "avg_active_energy");
+                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .MakeColumn(ColumnNames.AverageActiveEnergy(_settings.EnergyUnit), "avg_active_energy");
         }
 
         public IEnumerable<Column<LocalDate>> BuildSummaryForDateRange(IRange<ZonedDateTime> dateRange)
         {
-            yield return MakeColumn(
-                _standing.Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive)),
-                ColumnNames.StandHours(),
-                "stand_hours");
+            yield return _standing
+                .Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
+                .MakeColumn(ColumnNames.StandHours(), "stand_hours");
 
-            yield return MakeColumn(
-                _flightsClimbed.Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive)),
-                ColumnNames.FlightsClimbed(),
-                "flights");
+            yield return _flightsClimbed
+                .Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
+                .MakeColumn(ColumnNames.FlightsClimbed(), "flights");
 
-            yield return MakeColumn(
-                _exerciseTime.Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive)),
-                ColumnNames.ExerciseDuration(_settings.DurationUnit),
-                "exercise_time");
+            yield return _exerciseTime
+                .Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
+                .MakeColumn(ColumnNames.ExerciseDuration(_settings.DurationUnit), "exercise_time");
 
-            yield return MakeColumn(
-                _basalEnergy.Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive)),
-                ColumnNames.BasalEnergy(_settings.EnergyUnit),
-                "basal_energy");
+            yield return _basalEnergy
+                .Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
+                .MakeColumn(ColumnNames.BasalEnergy(_settings.EnergyUnit), "basal_energy");
 
-            yield return MakeColumn(
-                _activeEnergy.Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive)),
-                ColumnNames.ActiveEnergy(_settings.EnergyUnit),
-                "active_energy");
-        }
-        private static Column<TKey> MakeColumn<TKey, TVal>(IEnumerable<Tuple<TKey, TVal>> data, string header = null, string range = null)
-        {
-            return data.Aggregate(
-                new Column<TKey> { Header = header, RangeName = range },
-                (col, r) => { col.Add(r.Item1, r.Item2); return col; });
+            yield return _activeEnergy
+                .Where(r => dateRange.Includes(r.Item1.AtStartOfDayInZone(_zone), Clusivity.Inclusive))
+                .MakeColumn(ColumnNames.ActiveEnergy(_settings.EnergyUnit), "active_energy");
         }
     }
 }

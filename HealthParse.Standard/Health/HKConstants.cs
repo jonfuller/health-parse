@@ -19,6 +19,13 @@
                 public const string StandType = "HKCategoryTypeIdentifierAppleStandHour";
                 public const string Stood = "HKCategoryValueAppleStandHourStood";
             }
+
+            public static class Markers
+            {
+                public const string RestingHeartRate = "HKQuantityTypeIdentifierRestingHeartRate";
+                public const string Vo2Max = "HKQuantityTypeIdentifierVO2Max";
+                public const string WalkingHeartRateAverage = "HKQuantityTypeIdentifierWalkingHeartRateAverage";
+            }
         }
 
         public static class Workouts

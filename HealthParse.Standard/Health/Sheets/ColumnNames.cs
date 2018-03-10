@@ -27,6 +27,15 @@ namespace HealthParse.Standard.Health.Sheets
         public static string AverageBasalEnergy(EnergyUnit unit) => $"Average {BasalEnergy(unit)}";
         public static string AverageActiveEnergy(EnergyUnit unit) => $"Average {ActiveEnergy(unit)}";
 
+        public static class Markers
+        {
+            public const string RestingHeartRate = "Resting HR";
+            public const string Vo2Max = "VO2 Max";
+            public const string WalkingHeartRateAverage = "Walking HR (Avg)";
+
+            public const string RestingHeartRateAverage = "Resting HR (Avg)";
+            public const string Vo2MaxAverage = "VO2 Max (Avg)";
+        }
         public static class Settings
         {
             public static string Name() => "Name";
