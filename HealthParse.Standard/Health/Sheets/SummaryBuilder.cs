@@ -11,12 +11,14 @@ namespace HealthParse.Standard.Health.Sheets
         private readonly IEnumerable<LocalDate> _healthMonths;
         private readonly IEnumerable<Column<LocalDate>> _columns;
 
-        public SummaryBuilder(IEnumerable<Record> records,
+        public SummaryBuilder(
+            IEnumerable<Record> records,
             IEnumerable<Workout> workouts,
             DateTimeZone zone,
             StepBuilder stepBuilder,
             GeneralRecordsBuilder generalRecordsBuilder,
             HealthMarkersBuilder healthMarkersBuilder,
+            NutritionBuilder nutritionBuilder,
             CyclingWorkoutBuilder cyclingBuilder,
             PlayWorkoutBuilder playBuilder,
             EllipticalWorkoutBuilder ellipticalBuilder,
@@ -45,6 +47,7 @@ namespace HealthParse.Standard.Health.Sheets
                     .Concat(bodyFatBuilder.BuildSummary())
                     .Concat(generalRecordsBuilder.BuildSummary())
                     .Concat(healthMarkersBuilder.BuildSummary())
+                    .Concat(nutritionBuilder.BuildSummary())
                     .Concat(massBuilder.BuildSummary())
                     .Concat(distanceCyclingBuilder.BuildSummary())
                     .Concat(cyclingBuilder.BuildSummary())

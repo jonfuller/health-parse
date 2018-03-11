@@ -39,7 +39,7 @@ namespace HealthParse.Standard.Health
                     var columnNumber = sheetData.Keyed
                         ? c.i + 2
                         : c.i + 1;
-                    var columnLetter = ColumnLetter(columnNumber);
+                    var columnLetter = ColumnLetter(columnNumber-1);
 
                     if (sheetData.Keyed)
                         WriteColumn(c.column, sheetData.KeyColumn, columnNumber, sheet);
@@ -57,9 +57,16 @@ namespace HealthParse.Standard.Health
                 });
         }
 
+        /// <summary>
+        /// Expects zero-based column number
+        /// </summary>
         private static string ColumnLetter(int i)
         {
-            return new string((char) (i + 'A' - 1), 1);
+            const int alphabetLength = 26;
+
+            return i / alphabetLength == 0
+                ? new string((char) (i + 'A'), 1)
+                : $"{ColumnLetter(i / alphabetLength - 1)}{ColumnLetter(i % alphabetLength)}";
         }
 
         private static void WriteKeyColumn<T>(KeyColumn<T> keyColumn, int colNum, ExcelWorksheet sheet)

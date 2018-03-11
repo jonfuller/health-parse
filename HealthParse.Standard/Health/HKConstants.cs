@@ -20,6 +20,14 @@
                 public const string Stood = "HKCategoryValueAppleStandHourStood";
             }
 
+            public static class Nutrition
+            {
+                public const string EnergyConsumed = "HKQuantityTypeIdentifierDietaryEnergyConsumed";
+                public const string Fat = "HKQuantityTypeIdentifierDietaryFatTotal";
+                public const string Carbs = "HKQuantityTypeIdentifierDietaryCarbohydrates";
+                public const string Protein = "HKQuantityTypeIdentifierDietaryProtein";
+            }
+
             public static class Markers
             {
                 public const string RestingHeartRate = "HKQuantityTypeIdentifierRestingHeartRate";

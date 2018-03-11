@@ -53,12 +53,14 @@ namespace HealthParse.Standard.Health
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
             var generalRecordsBuilder = new GeneralRecordsBuilder(records, zone, settings);
             var healthMarkersBuilder = new HealthMarkersBuilder(records, zone);
+            var nutritionBuilder = new NutritionBuilder(records, zone, settings);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
             var summaryBuilder = new SummaryBuilder(records, workouts, zone,
                 stepBuilder,
                 generalRecordsBuilder,
                 healthMarkersBuilder,
+                nutritionBuilder,
                 cyclingWorkoutBuilder,
                 playWorkoutBuilder,
                 ellipticalWorkoutBuilder,
@@ -91,6 +93,7 @@ namespace HealthParse.Standard.Health
                         stepBuilder,
                         generalRecordsBuilder,
                         healthMarkersBuilder,
+                        nutritionBuilder,
                         cyclingWorkoutBuilder,
                         playWorkoutBuilder,
                         ellipticalWorkoutBuilder,
@@ -117,6 +120,7 @@ namespace HealthParse.Standard.Health
                 .Concat(new { builder = (object)bodyFatBuilder, sheetName = SheetNames.BodyFat, omitEmptyColumns = true })
                 .Concat(new { builder = (object)generalRecordsBuilder, sheetName = SheetNames.GeneralRecords, omitEmptyColumns = true })
                 .Concat(new { builder = (object)healthMarkersBuilder, sheetName = SheetNames.HealthMarkers, omitEmptyColumns = true })
+                .Concat(new { builder = (object)nutritionBuilder, sheetName = SheetNames.Nutrition, omitEmptyColumns = true })
                 .Concat(new { builder = (object)distanceCyclingBuilder, sheetName = SheetNames.CyclingDistance, omitEmptyColumns = true })
                 .Concat(new { builder = (object)cyclingWorkoutBuilder, sheetName = SheetNames.CyclingWorkouts, omitEmptyColumns = true })
                 .Concat(new { builder = (object)strengthTrainingBuilder, sheetName = SheetNames.StrengthTraining, omitEmptyColumns = true })

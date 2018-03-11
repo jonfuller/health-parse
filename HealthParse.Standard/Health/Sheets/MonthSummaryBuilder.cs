@@ -16,6 +16,7 @@ namespace HealthParse.Standard.Health.Sheets
             StepBuilder stepBuilder,
             GeneralRecordsBuilder generalRecordsBuilder,
             HealthMarkersBuilder healthMarkersBuilder,
+            NutritionBuilder nutritionBuilder,
             CyclingWorkoutBuilder cyclingBuilder,
             PlayWorkoutBuilder playBuilder,
             EllipticalWorkoutBuilder ellipticalBuilder,
@@ -38,6 +39,7 @@ namespace HealthParse.Standard.Health.Sheets
                 .Concat(bodyFatBuilder.BuildSummaryForDateRange(range))
                 .Concat(generalRecordsBuilder.BuildSummaryForDateRange(range))
                 .Concat(healthMarkersBuilder.BuildSummaryForDateRange(range))
+                .Concat(nutritionBuilder.BuildSummaryForDateRange(range))
                 .Concat(massBuilder.BuildSummaryForDateRange(range))
                 .Concat(distanceCyclingBuilder.BuildSummaryForDateRange(range))
                 .Concat(cyclingBuilder.BuildSummaryForDateRange(range))

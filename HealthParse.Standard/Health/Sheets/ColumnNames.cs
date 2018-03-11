@@ -36,6 +36,19 @@ namespace HealthParse.Standard.Health.Sheets
             public const string RestingHeartRateAverage = "Resting HR (Avg)";
             public const string Vo2MaxAverage = "VO2 Max (Avg)";
         }
+
+        public static class Nutrition
+        {
+            public static string EnergyConsumed(EnergyUnit unit) => $"Consumed ({unit})";
+            public static string Fat() => "Fat (g)";
+            public static string Carbs() => "Carbs (g)";
+            public static string Protein() => "Protein (g)";
+
+            public static string AverageConsumed(EnergyUnit unit) => $"Avg {EnergyConsumed(unit)}";
+            public static string AverageFat() => $"Avg {Fat()}";
+            public static string AverageCarbs() => $"Avg {Carbs()}";
+            public static string AverageProtein() => $"Avg {Protein()}";
+        }
         public static class Settings
         {
             public static string Name() => "Name";

@@ -8,6 +8,7 @@
         public const string BodyFat = "Body Fat %";
         public const string GeneralRecords = "General Records";
         public const string HealthMarkers = "Health Markers";
+        public const string Nutrition = "Nutrition";
         public const string CyclingDistance = "Cycling (Distance)";
         public const string CyclingWorkouts = "Cycling (Workouts)";
         public const string StrengthTraining = "Strength Training";
