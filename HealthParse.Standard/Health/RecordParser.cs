@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Xml.Linq;
 using NodaTime.Text;
 using UnitsNet;
 
@@ -26,23 +25,6 @@ namespace HealthParse.Standard.Health
                 Value = value,
                 Unit = unit,
                 SourceName = sourceName,
-            };
-        }
-        public static Record FromXElement(XElement r)
-        {
-            var pattern = OffsetDateTimePattern.CreateWithInvariantCulture("yyyy-MM-dd HH:mm:ss o<M>");
-            var startDate = pattern.Parse(r.Attribute("startDate").Value).Value.ToInstant();
-            var endDate = pattern.Parse(r.Attribute("endDate").Value).Value.ToInstant();
-
-            return new Record
-            {
-                Type = r.Attribute("type").Value,
-                EndDate = endDate,
-                StartDate = startDate,
-                DateRange = new InstantRange(startDate, endDate),
-                Value = r.Attribute("value")?.Value ?? "<null>",
-                Unit = r.Attribute("unit")?.Value ?? "<null>",
-                SourceName = r.Attribute("sourceName")?.Value ?? "<null>",
             };
         }
 
