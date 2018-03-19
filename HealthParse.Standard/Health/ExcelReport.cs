@@ -133,16 +133,18 @@ namespace HealthParse.Standard.Health
                 .ToList();
 
             sheetBuilders
-                .Select(b => new{sheet=workbook.Worksheets.Add(b.sheetName), b.builder})
-                .AsParallel()
-                .AsOrdered()
-                .ForAll(s =>
+                .Select(b => new { b.sheetName, b.builder })
+                .AsParallel().AsOrdered()
+                .Select(b => new { b.sheetName, data = GetData(b.builder) })
+                .AsSequential()
+                .ToList().ForEach(s =>
                 {
-                    var wroteData = WriteSheet(s.sheet, s.builder);
+                    var sheet = workbook.Worksheets.Add(s.sheetName);
+                    var wroteData = WriteData(sheet, s.data);
 
                     if (settings.OmitEmptySheets && !wroteData)
                     {
-                        workbook.Worksheets.Delete(s.sheet);
+                        workbook.Worksheets.Delete(sheet);
                     }
                 });
 
@@ -153,7 +155,7 @@ namespace HealthParse.Standard.Health
                 monthBuilders.Select(b => b.sheetName).ToList());
         }
 
-        private static bool WriteSheet(ExcelWorksheet sheet, object builder)
+        private static object GetData(object builder)
         {
             var builderTypes = builder
                 .GetType()
@@ -162,15 +164,31 @@ namespace HealthParse.Standard.Health
                 .Single(t => t.GetGenericTypeDefinition() == typeof(IRawSheetBuilder<>))
                 .GetGenericArguments();
 
-            var openAddSheet = typeof(ExcelReport).GetMethod(nameof(WriteSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
-            var closedAddSheet = openAddSheet.MakeGenericMethod(builderTypes);
+            var openGetSheet = typeof(ExcelReport).GetMethod(nameof(GetRawSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
+            var closedGetSheet = openGetSheet.MakeGenericMethod(builderTypes);
 
-            return (bool)closedAddSheet.Invoke(null, new[] {builder, sheet});
+            return closedGetSheet.Invoke(null, new[] {builder});
         }
 
-        private static bool WriteSheetTyped<T>(IRawSheetBuilder<T> builder, ExcelWorksheet sheet)
+        private static Dataset<T> GetRawSheetTyped<T>(IRawSheetBuilder<T> builder)
         {
-            var sheetData = builder.BuildRawSheet();
+            return builder.BuildRawSheet();
+        }
+
+        private static bool WriteData(ExcelWorksheet sheet, object data)
+        {
+            var builderTypes = data
+                .GetType()
+                .GetGenericArguments();
+
+            var openWriteSheet = typeof(ExcelReport).GetMethod(nameof(WriteSheetTyped), BindingFlags.Static | BindingFlags.NonPublic);
+            var closedWriteSheet = openWriteSheet.MakeGenericMethod(builderTypes);
+
+            return (bool)closedWriteSheet.Invoke(null, new[] { data, sheet });
+        }
+
+        private static bool WriteSheetTyped<T>(Dataset<T> sheetData, ExcelWorksheet sheet)
+        {
             if (sheetData.Any())
             {
                 sheet.WriteData(sheetData);
