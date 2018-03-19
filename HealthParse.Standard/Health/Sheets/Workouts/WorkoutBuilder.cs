@@ -4,7 +4,7 @@ using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets.Workouts
 {
-    public abstract class WorkoutBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
+    public abstract class WorkoutBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
     {
         private readonly IEnumerable<Workout> _workouts;
         private readonly DateTimeZone _zone;
@@ -43,23 +43,23 @@ namespace HealthParse.Standard.Health.Sheets.Workouts
             return new Dataset<unit>(columns.date, columns.distance, columns.energy, columns.duration);
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             var columns = _workouts
                 .GroupBy(r => new { r.StartDate.InZone(_zone).Date.Year, r.StartDate.InZone(_zone).Date.Month})
                 .Aggregate(new
                     {
-                        distance = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Distance(_settings.DistanceUnit)}", RangeName = $"total_{_workoutColumnName}_distance"},
-                        energy = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.EnergyBurned(_settings.EnergyUnit)}", RangeName = $"total_{_workoutColumnName}_energy_burned"},
-                        duration = new Column<LocalDate> { Header = $"{_workoutColumnName} - {ColumnNames.Duration(_settings.DurationUnit)}", RangeName = $"total_{_workoutColumnName}_duration"},
+                        distance = new Column<(int Year, int Month)> { Header = $"{_workoutColumnName} - {ColumnNames.Distance(_settings.DistanceUnit)}", RangeName = $"total_{_workoutColumnName}_distance"},
+                        energy = new Column<(int Year, int Month)> { Header = $"{_workoutColumnName} - {ColumnNames.EnergyBurned(_settings.EnergyUnit)}", RangeName = $"total_{_workoutColumnName}_energy_burned"},
+                        duration = new Column<(int Year, int Month)> { Header = $"{_workoutColumnName} - {ColumnNames.Duration(_settings.DurationUnit)}", RangeName = $"total_{_workoutColumnName}_duration"},
                     },
                     (cols, r) =>
                     {
-                        var date = new LocalDate(r.Key.Year, r.Key.Month, 1);
+                        var month = (r.Key.Year, r.Key.Month);
 
-                        cols.distance.Add(date, r.Sum(c => c.Distance).As(_settings.DistanceUnit));
-                        cols.energy.Add(date, r.Sum(c => c.Energy).As(_settings.EnergyUnit));
-                        cols.duration.Add(date, r.Sum(c => c.Duration).As(_settings.DurationUnit));
+                        cols.distance.Add(month, r.Sum(c => c.Distance).As(_settings.DistanceUnit));
+                        cols.energy.Add(month, r.Sum(c => c.Energy).As(_settings.EnergyUnit));
+                        cols.duration.Add(month, r.Sum(c => c.Duration).As(_settings.DurationUnit));
 
                         return cols;
                     });

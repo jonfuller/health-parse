@@ -5,11 +5,11 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class MassBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
+    public class MassBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
     {
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
-        private readonly IEnumerable<Weight> _records;
+        private readonly IEnumerable<(Instant StartDate, Mass Value)> _records;
 
         public MassBuilder(IEnumerable<Record> records, DateTimeZone zone, Settings.Settings settings)
         {
@@ -17,7 +17,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
             _settings = settings;
             _records = records
                 .Where(r => r.Type == HKConstants.Records.BodyMass)
-                .Select(Weight.FromRecord);
+                .Select(r => (r.StartDate, RecordParser.Weight(r)));
         }
 
         public Dataset<unit> BuildRawSheet()
@@ -39,16 +39,16 @@ namespace HealthParse.Standard.Health.Sheets.Records
             return new Dataset<unit>(columns.date, columns.mass);
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             var massColumn = _records
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
                 .Select(g => new { date = g.Key, mass = g.Min(x => x.Value) })
-                .GroupBy(s => new { s.date.Year, s.date.Month })
-                .Aggregate(new Column<LocalDate> { Header = ColumnNames.AverageWeight(_settings.WeightUnit), RangeName = "mass"},
+                .GroupBy(s => (Year: s.date.Year, Month: s.date.Month ))
+                .Aggregate(new Column<(int Year, int Month)> { Header = ColumnNames.AverageWeight(_settings.WeightUnit), RangeName = "mass"},
                     (col, r) =>
                     {
-                        col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.mass).As(_settings.WeightUnit));
+                        col.Add(r.Key, r.Average(c => c.mass).As(_settings.WeightUnit));
                         return col;
                     });
 
@@ -69,20 +69,6 @@ namespace HealthParse.Standard.Health.Sheets.Records
                     });
 
             yield return massColumn;
-        }
-
-        private class Weight
-        {
-            public Instant StartDate { get; private set; }
-            public Mass Value { get; private set; }
-            public static Weight FromRecord(Record record)
-            {
-                return new Weight
-                {
-                    StartDate = record.StartDate,
-                    Value = RecordParser.Weight(record)
-                };
-            }
         }
     }
 }

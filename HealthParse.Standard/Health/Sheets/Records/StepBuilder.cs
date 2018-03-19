@@ -4,9 +4,9 @@ using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class StepBuilder : IRawSheetBuilder<LocalDate>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
+    public class StepBuilder : IRawSheetBuilder<LocalDate>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
     {
-        private readonly IEnumerable<StepItem> _stepsByDay;
+        private readonly IEnumerable<(LocalDate Date, int Steps)> _stepsByDay;
         private readonly DateTimeZone _zone;
 
         public StepBuilder(IEnumerable<Record> records, DateTimeZone zone)
@@ -21,7 +21,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 .Aggregate(new
                 {
                     dateColumn = new KeyColumn<LocalDate> { Header = ColumnNames.Date() },
-                    steps = new Column<LocalDate>(),
+                    steps = new Column<LocalDate>(){ Header = ColumnNames.Steps()},
                 },
                 (cols, step) =>
                 {
@@ -34,16 +34,14 @@ namespace HealthParse.Standard.Health.Sheets.Records
             return new Dataset<LocalDate>(columns.dateColumn, columns.steps);
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             var stepsColumn = _stepsByDay
-                .GroupBy(s => new { s.Date.Year, s.Date.Month })
-                .Aggregate(new Column<LocalDate> {Header = ColumnNames.Steps(), RangeName = "steps"},
+                .GroupBy(s => (Year: s.Date.Year, Month: s.Date.Month))
+                .Aggregate(new Column<(int Year, int Month)> {Header = ColumnNames.Steps(), RangeName = "steps"},
                     (cols, step) =>
                     {
-                        var date = new LocalDate(step.Key.Year, step.Key.Month, 1);
-                        cols.Add(date, step.Sum(r => r.Steps));
-
+                        cols.Add(step.Key, step.Sum(r => r.Steps));
                         return cols;
                     });
 
@@ -65,20 +63,14 @@ namespace HealthParse.Standard.Health.Sheets.Records
             yield return stepsColumn;
         }
 
-        private static IEnumerable<StepItem> GetStepsByDay(IEnumerable<Record> records, DateTimeZone zone)
+        private static IEnumerable<(LocalDate Date, int Steps)> GetStepsByDay(IEnumerable<Record> records, DateTimeZone zone)
         {
             return StepHelper.PrioritizeSteps(records)
                 .Select(r => new { zoned = r.StartDate.InZone(zone), r })
                 .GroupBy(s => s.zoned.Date)
-                .Select(x => new StepItem{Date = x.Key, Steps = (int)x.Sum(r => r.r.Value.SafeParse(0))})
+                .Select(x => (Date: x.Key, Steps: (int)x.Sum(r => r.r.Value.SafeParse(0))))
                 .OrderByDescending(s => s.Date)
                 ;
-        }
-
-        private class StepItem
-        {
-            public LocalDate Date { get; set; }
-            public int Steps { get; set; }
         }
     }
 }

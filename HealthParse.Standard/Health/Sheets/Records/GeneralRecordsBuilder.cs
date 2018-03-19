@@ -6,7 +6,7 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class GeneralRecordsBuilder : IRawSheetBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>, IMonthlySummaryBuilder<LocalDate>
+    public class GeneralRecordsBuilder : IRawSheetBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>, IMonthlySummaryBuilder<LocalDate>
     {
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
@@ -93,31 +93,31 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 _activeEnergy.MakeColumn(ColumnNames.ActiveEnergy(_settings.EnergyUnit)));
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             yield return _standing
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.AverageStandHours(), "avg_stand_hours");
 
             yield return _flightsClimbed
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Sum(c => c.Item2)))
                 .MakeColumn(ColumnNames.TotalFlightsClimbed(), "total_flights");
 
             yield return _exerciseTime
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Sum(c => c.Item2)))
                 .MakeColumn(ColumnNames.TotalExerciseDuration(_settings.DurationUnit), "total_exercise");
 
             yield return _basalEnergy
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.AverageBasalEnergy(_settings.EnergyUnit), "avg_basal_energy");
 
             yield return _activeEnergy
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.AverageActiveEnergy(_settings.EnergyUnit), "avg_active_energy");
         }
 

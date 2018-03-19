@@ -5,7 +5,7 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class DistanceCyclingBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
+    public class DistanceCyclingBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
     {
         private readonly Settings.Settings _settings;
         private readonly IEnumerable<DistanceCycling> _records;
@@ -38,14 +38,14 @@ namespace HealthParse.Standard.Health.Sheets.Records
             return new Dataset<unit>(columns.date, columns.distance);
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             var distanceColumn = _records
-                .GroupBy(s => new { s.StartDate.Year, s.StartDate.Month })
-                .Aggregate(new Column<LocalDate> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit), RangeName = "total_cycling_distance" },
+                .GroupBy(s => (s.StartDate.Year, s.StartDate.Month))
+                .Aggregate(new Column<(int Year, int Month)> { Header = ColumnNames.CyclingDistance(_settings.DistanceUnit), RangeName = "total_cycling_distance" },
                     (col, r) =>
                     {
-                        col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Sum(c => c.Distance).As(_settings.DistanceUnit));
+                        col.Add(r.Key, r.Sum(c => c.Distance).As(_settings.DistanceUnit));
                         return col;
                     });
 

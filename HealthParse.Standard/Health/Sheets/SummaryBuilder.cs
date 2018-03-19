@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HealthParse.Standard.Health.Sheets.Records;
 using HealthParse.Standard.Health.Sheets.Workouts;
@@ -6,10 +7,10 @@ using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets
 {
-    public class SummaryBuilder : IRawSheetBuilder<LocalDate>
+    public class SummaryBuilder : IRawSheetBuilder<(int Year, int Month)>
     {
-        private readonly IEnumerable<LocalDate> _healthMonths;
-        private readonly IEnumerable<Column<LocalDate>> _columns;
+        private readonly IEnumerable<(int Year, int Month)> _healthMonths;
+        private readonly IEnumerable<Column<(int Year, int Month)>> _columns;
 
         public SummaryBuilder(
             IEnumerable<Record> records,
@@ -40,30 +41,30 @@ namespace HealthParse.Standard.Health.Sheets
 
             _healthMonths = recordMonths.Concat(workoutMonths)
                 .Distinct()
-                .Select(m => new LocalDate(m.Year, m.Month, 1));
+                .Select(m => (Year: m.Year, Month: m.Month));
 
-            _columns = Enumerable.Empty<Column<LocalDate>>()
-                    .Concat(stepBuilder.BuildSummary())
-                    .Concat(bodyFatBuilder.BuildSummary())
-                    .Concat(generalRecordsBuilder.BuildSummary())
-                    .Concat(healthMarkersBuilder.BuildSummary())
-                    .Concat(nutritionBuilder.BuildSummary())
-                    .Concat(massBuilder.BuildSummary())
-                    .Concat(distanceCyclingBuilder.BuildSummary())
-                    .Concat(cyclingBuilder.BuildSummary())
-                    .Concat(playBuilder.BuildSummary())
-                    .Concat(ellipticalBuilder.BuildSummary())
-                    .Concat(walkingBuilder.BuildSummary())
-                    .Concat(runningBuilder.BuildSummary())
-                    .Concat(strengthBuilder.BuildSummary())
-                    .Concat(hiitBuilder.BuildSummary())
+            _columns = Enumerable.Empty<Column<(int Year, int Month)>>()
+                .Concat(stepBuilder.BuildSummary())
+                .Concat(bodyFatBuilder.BuildSummary())
+                .Concat(generalRecordsBuilder.BuildSummary())
+                .Concat(healthMarkersBuilder.BuildSummary())
+                .Concat(nutritionBuilder.BuildSummary())
+                .Concat(massBuilder.BuildSummary())
+                .Concat(distanceCyclingBuilder.BuildSummary())
+                .Concat(cyclingBuilder.BuildSummary())
+                .Concat(playBuilder.BuildSummary())
+                .Concat(ellipticalBuilder.BuildSummary())
+                .Concat(walkingBuilder.BuildSummary())
+                .Concat(runningBuilder.BuildSummary())
+                .Concat(strengthBuilder.BuildSummary())
+                .Concat(hiitBuilder.BuildSummary())
                 ;
         }
 
-        public Dataset<LocalDate> BuildRawSheet()
+        public Dataset<(int Year, int Month)> BuildRawSheet()
         {
-            return new Dataset<LocalDate>(
-                new KeyColumn<LocalDate>(_healthMonths) { Header = ColumnNames.Month() },
+            return new Dataset<(int Year, int Month)>(
+                new KeyColumn<(int Year, int Month)>(_healthMonths) { Header = ColumnNames.Month() },
                 _columns.ToArray());
         }
     }

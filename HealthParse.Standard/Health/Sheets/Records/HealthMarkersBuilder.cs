@@ -6,7 +6,7 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class HealthMarkersBuilder : IRawSheetBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>, IMonthlySummaryBuilder<LocalDate>
+    public class HealthMarkersBuilder : IRawSheetBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>, IMonthlySummaryBuilder<LocalDate>
     {
         private readonly DateTimeZone _zone;
         private readonly List<Tuple<LocalDate, double>> _restingHeartRate;
@@ -67,21 +67,21 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 _vo2Max.MakeColumn(ColumnNames.Markers.Vo2Max));
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             yield return _restingHeartRate
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Markers.RestingHeartRateAverage, "avg_resting_hr");
 
             yield return _vo2Max
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Markers.Vo2MaxAverage, "avg_vo2max");
 
             yield return _walkingHeartRateAvg
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Markers.WalkingHeartRateAverage, "avg_walking_hr_avg");
         }
 

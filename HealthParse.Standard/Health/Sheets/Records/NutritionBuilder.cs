@@ -6,7 +6,7 @@ using UnitsNet;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class NutritionBuilder : IRawSheetBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>, IMonthlySummaryBuilder<LocalDate>
+    public class NutritionBuilder : IRawSheetBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>, IMonthlySummaryBuilder<LocalDate>
     {
         private readonly DateTimeZone _zone;
         private readonly Settings.Settings _settings;
@@ -88,23 +88,23 @@ namespace HealthParse.Standard.Health.Sheets.Records
                 _protein.MakeColumn(ColumnNames.Nutrition.Protein()));
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             yield return _energyConsumed
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Nutrition.AverageConsumed(_settings.EnergyUnit), "avg_consumed");
             yield return _fat
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Nutrition.AverageFat(), "avg_fat");
             yield return _carbs
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Nutrition.AverageCarbs(), "avg_carbs");
             yield return _protein
-                .GroupBy(s => new { s.Item1.Year, s.Item1.Month })
-                .Select(r => Tuple.Create(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.Item2)))
+                .GroupBy(s => (s.Item1.Year, s.Item1.Month))
+                .Select(r => Tuple.Create(r.Key, r.Average(c => c.Item2)))
                 .MakeColumn(ColumnNames.Nutrition.AverageProtein(), "avg_protein");
         }
 

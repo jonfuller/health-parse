@@ -4,7 +4,7 @@ using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
-    public class BodyFatPercentageBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<LocalDate>
+    public class BodyFatPercentageBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
     {
         private readonly DateTimeZone _zone;
         private readonly IEnumerable<Record> _records;
@@ -34,16 +34,16 @@ namespace HealthParse.Standard.Health.Sheets.Records
             return new Dataset<unit>(columns.date, columns.bodyfat);
         }
 
-        public IEnumerable<Column<LocalDate>> BuildSummary()
+        public IEnumerable<Column<(int Year, int Month)>> BuildSummary()
         {
             var column = _records
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
                 .Select(g => new {date = g.Key, bodyFat = g.Min(x => x.Value.SafeParse(0))})
-                .GroupBy(s => new {s.date.Year, s.date.Month})
-                .Aggregate(new Column<LocalDate> {Header = ColumnNames.AverageBodyFatPercentage(), RangeName = "avg_bodyfatpct"},
+                .GroupBy(s => (Year: s.date.Year, Month: s.date.Month))
+                .Aggregate(new Column<(int Year, int Month)> {Header = ColumnNames.AverageBodyFatPercentage(), RangeName = "avg_bodyfatpct"},
                     (col, r) =>
                     {
-                        col.Add(new LocalDate(r.Key.Year, r.Key.Month, 1), r.Average(c => c.bodyFat));
+                        col.Add(r.Key, r.Average(c => c.bodyFat));
                         return col;
                     });
 
