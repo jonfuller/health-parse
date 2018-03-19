@@ -22,9 +22,23 @@ namespace HealthParse.Standard.Health
 
         private static readonly Dictionary<Type, Action<ExcelRange>> Formatters = new Dictionary<Type, Action<ExcelRange>>()
         {
-            {typeof(LocalDate), range => range.Style.Numberformat.Format = "yyyy-mm-dd" }, // TODO
-            {typeof(ZonedDateTime), range => range.Style.Numberformat.Format = "yyyy-mm-dd" }, // TODO
+            {typeof(ZonedDateTime), range => range.Style.Numberformat.Format = "yyyy-MM-dd hh:mm" },
+            {typeof(LocalDate), range => range.Style.Numberformat.Format = "yyyy-MM-dd" },
+            {typeof((int Year, int Month)), range => range.Style.Numberformat.Format = "yyyy-MM" },
         };
+
+        private static readonly Dictionary<Type, Func<object, object>> Mappers = new Dictionary<Type, Func<object, object>>()
+        {
+            {typeof(ZonedDateTime), value => ((ZonedDateTime)value).ToDateTimeUnspecified()},
+            {typeof(LocalDate), value => ((LocalDate)value).ToDateTimeUnspecified()},
+            {typeof((int Year, int Month)), value =>
+                {
+                    var month = ((int Year, int Month)) value;
+                    return new DateTime(month.Year, month.Month, 1);
+                }
+            },
+        };
+
         public static void WriteData<T>(this ExcelWorksheet sheet, Dataset<T> sheetData, bool omitEmptyColumns = true)
         {
             if (sheetData.Keyed)
@@ -81,15 +95,10 @@ namespace HealthParse.Standard.Health
                 .Select((key, i) => new { value = column[key], rowNum = i + 2 })
                 .ToList().ForEach(item =>
                 {
-                    var cell = target.Cells[item.rowNum, columnNum];
-                    var formatter = item.value != null && Formatters.ContainsKey(item.value.GetType())
-                        ? Formatters[item.value.GetType()]
-                        : range => { };
-
-                    cell.Value = item.value;
-                    formatter(cell);
+                    WriteValue(target.Cells[item.rowNum, columnNum], item.value);
                 });
         }
+
         private static void WriteColumn<T>(Column<T> column, int columnNum, ExcelWorksheet target)
         {
             target.Cells[1, columnNum].Value = column.Header;
@@ -97,14 +106,21 @@ namespace HealthParse.Standard.Health
                 .Select((value, i) => new { value, rowNum = i + 2 })
                 .ToList().ForEach(item =>
                 {
-                    var cell = target.Cells[item.rowNum, columnNum];
-                    var formatter = item.value != null && Formatters.ContainsKey(item.value.GetType())
-                        ? Formatters[item.value.GetType()]
-                        : range => { };
-
-                    cell.Value = item.value;
-                    formatter(cell);
+                    WriteValue(target.Cells[item.rowNum, columnNum], item.value);
                 });
+        }
+
+        private static void WriteValue(ExcelRange cell, object value)
+        {
+            var mapper = value != null && Mappers.ContainsKey(value.GetType())
+                ? Mappers[value.GetType()]
+                : v => v;
+            var formatter = value != null && Formatters.ContainsKey(value.GetType())
+                ? Formatters[value.GetType()]
+                : range => { };
+
+            cell.Value = mapper(value);
+            formatter(cell);
         }
 
         public static void PlaceCustomSheets(this ExcelWorkbook workbook,
