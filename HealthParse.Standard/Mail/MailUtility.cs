@@ -20,12 +20,6 @@ namespace HealthParse.Standard.Mail
             });
         }
 
-        public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from,
-            ISettingsStore settingsStore)
-        {
-            return ProcessEmail(originalEmail, from, settingsStore, new TelemetryClient());
-        }
-
         public static Result<MimeMessage> ProcessEmail(MimeMessage originalEmail, string from, ISettingsStore settingsStore, TelemetryClient telemetry)
         {
             var userId = originalEmail.From.Mailboxes.First().HashedEmail();
@@ -57,13 +51,6 @@ namespace HealthParse.Standard.Mail
             }
         }
 
-        public static MimeMessage ConstructErrorMessage(MimeMessage originalEmail, string from)
-        {
-            return ConstructReply(originalEmail, new MailboxAddress(from), builder =>
-            {
-                builder.TextBody = @"Something went wrong... sorry about that! Did you attach the ""export.zip"" from the Apple Health export?";
-            });
-        }
         public static MimeMessage ConstructErrorMessage(MimeMessage originalEmail, string from, Exception error)
         {
             originalEmail.Headers.Add("X-APH-error", error.ToString());
