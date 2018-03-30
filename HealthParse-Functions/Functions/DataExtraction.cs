@@ -31,7 +31,7 @@ namespace HealthParse
             var telemetry = new TelemetryClient(new TelemetryConfiguration(Fn.InstrumentationKey()));
 
             var settingsStore = new SettingsStore(new CloudStore(settingsContainer));
-            var reply = MailUtility.ProcessEmail(
+            var reply = MailProcessor.ProcessEmail(
                 originalEmail,
                 Fn.EmailConfig.Load().FromEmailAddress,
                 settingsStore,
