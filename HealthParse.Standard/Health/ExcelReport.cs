@@ -76,11 +76,6 @@ namespace HealthParse.Standard.Health
             return closedGetSheet.Invoke(null, new[] {builder});
         }
 
-        private static Dataset<T> GetRawSheetTyped<T>(IRawSheetBuilder<T> builder)
-        {
-            return builder.BuildRawSheet();
-        }
-
         private static bool WriteData(ExcelWorksheet sheet, object data)
         {
             var builderTypes = data
@@ -91,6 +86,11 @@ namespace HealthParse.Standard.Health
             var closedWriteSheet = openWriteSheet.MakeGenericMethod(builderTypes);
 
             return (bool)closedWriteSheet.Invoke(null, new[] { data, sheet });
+        }
+
+        private static Dataset<T> GetRawSheetTyped<T>(IRawSheetBuilder<T> builder)
+        {
+            return builder.BuildRawSheet();
         }
 
         private static bool WriteSheetTyped<T>(Dataset<T> sheetData, ExcelWorksheet sheet)
