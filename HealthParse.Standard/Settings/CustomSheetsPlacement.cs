@@ -4,7 +4,6 @@
     {
         First,
         Last,
-        AfterSummary,
-        AfterMonthlySummaries
+        AfterSummary
     }
 }

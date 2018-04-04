@@ -126,8 +126,7 @@ namespace HealthParse.Standard.Health
         public static void PlaceCustomSheets(this ExcelWorkbook workbook,
             CustomSheetsPlacement placement,
             IEnumerable<ExcelWorksheet> customSheets,
-            string summarySheetName,
-            IList<string> monthSummaryNames)
+            string summarySheetName)
         {
             var customSheetsList = customSheets.ToList();
             foreach (var customSheet in customSheetsList)
@@ -142,16 +141,6 @@ namespace HealthParse.Standard.Health
                     {
                         workbook.Worksheets.MoveAfter(customSheet.Name, summarySheetName);
                     }
-                    break;
-                case CustomSheetsPlacement.AfterMonthlySummaries:
-                    if (monthSummaryNames.IsEmpty()) break;
-                    var lastMonth = monthSummaryNames.Last();
-
-                    foreach (var customSheet in customSheetsList)
-                    {
-                        workbook.Worksheets.MoveAfter(customSheet.Name, lastMonth);
-                    }
-
                     break;
                 case CustomSheetsPlacement.First:
                     foreach (var customSheet in customSheetsList)

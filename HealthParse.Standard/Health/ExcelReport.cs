@@ -150,9 +150,8 @@ namespace HealthParse.Standard.Health
 
             workbook.PlaceCustomSheets(
                 settings.CustomSheetsPlacement,
-                customSheetsList,
-                SheetNames.Summary,
-                monthBuilders.Select(b => b.sheetName).ToList());
+                customSheets,
+                SheetNames.Summary);
         }
 
         private static object GetData(object builder)
