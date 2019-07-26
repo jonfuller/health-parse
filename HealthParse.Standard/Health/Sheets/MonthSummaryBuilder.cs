@@ -17,13 +17,7 @@ namespace HealthParse.Standard.Health.Sheets
             GeneralRecordsBuilder generalRecordsBuilder,
             HealthMarkersBuilder healthMarkersBuilder,
             NutritionBuilder nutritionBuilder,
-            CyclingWorkoutBuilder cyclingBuilder,
-            PlayWorkoutBuilder playBuilder,
-            EllipticalWorkoutBuilder ellipticalBuilder,
-            RunningWorkoutBuilder runningBuilder,
-            WalkingWorkoutBuilder walkingBuilder,
-            StrengthTrainingBuilder strengthBuilder,
-            HiitBuilder hiitBuilder,
+            WorkoutBuilderFactory workoutBuilderFactory,
             DistanceCyclingBuilder distanceCyclingBuilder,
             MassBuilder massBuilder,
             BodyFatPercentageBuilder bodyFatBuilder)
@@ -42,13 +36,7 @@ namespace HealthParse.Standard.Health.Sheets
                 .Concat(nutritionBuilder.BuildSummaryForDateRange(range))
                 .Concat(massBuilder.BuildSummaryForDateRange(range))
                 .Concat(distanceCyclingBuilder.BuildSummaryForDateRange(range))
-                .Concat(cyclingBuilder.BuildSummaryForDateRange(range))
-                .Concat(playBuilder.BuildSummaryForDateRange(range))
-                .Concat(ellipticalBuilder.BuildSummaryForDateRange(range))
-                .Concat(walkingBuilder.BuildSummaryForDateRange(range))
-                .Concat(runningBuilder.BuildSummaryForDateRange(range))
-                .Concat(strengthBuilder.BuildSummaryForDateRange(range))
-                .Concat(hiitBuilder.BuildSummaryForDateRange(range))
+                .Concat(workoutBuilderFactory.GetWorkoutBuilders().SelectMany(b => b.BuildSummaryForDateRange(range)))
                 ;
         }
 

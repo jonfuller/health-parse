@@ -4,15 +4,18 @@ using NodaTime;
 
 namespace HealthParse.Standard.Health.Sheets.Workouts
 {
-    public abstract class WorkoutBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
+    public class WorkoutBuilder : IRawSheetBuilder<unit>, IMonthlySummaryBuilder<LocalDate>, ISummarySheetBuilder<(int Year, int Month)>
     {
+        public string WorkoutKey { get; }
+
         private readonly IEnumerable<Workout> _workouts;
         private readonly DateTimeZone _zone;
         private readonly string _workoutColumnName;
         private readonly Settings.Settings _settings;
 
-        protected WorkoutBuilder(IEnumerable<Workout> workouts, string workoutKey, string workoutColumnName, DateTimeZone zone, Settings.Settings settings)
+        public WorkoutBuilder(IEnumerable<Workout> workouts, string workoutKey, string workoutColumnName, DateTimeZone zone, Settings.Settings settings)
         {
+            WorkoutKey = workoutKey;
             _workouts = workouts.Where(w => w.WorkoutType == workoutKey);
             _workoutColumnName = workoutColumnName;
             _settings = settings;

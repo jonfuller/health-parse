@@ -15,27 +15,22 @@ namespace HealthParse.Standard.Health.Sheets
         public SummaryBuilder(
             IEnumerable<Record> records,
             IEnumerable<Workout> workouts,
+            WorkoutBuilderFactory workoutBuilderFactory,
             DateTimeZone zone,
             StepBuilder stepBuilder,
             GeneralRecordsBuilder generalRecordsBuilder,
             HealthMarkersBuilder healthMarkersBuilder,
             NutritionBuilder nutritionBuilder,
-            CyclingWorkoutBuilder cyclingBuilder,
-            PlayWorkoutBuilder playBuilder,
-            EllipticalWorkoutBuilder ellipticalBuilder,
-            RunningWorkoutBuilder runningBuilder,
-            WalkingWorkoutBuilder walkingBuilder,
-            StrengthTrainingBuilder strengthBuilder,
-            HiitBuilder hiitBuilder,
             DistanceCyclingBuilder distanceCyclingBuilder,
             MassBuilder massBuilder,
             BodyFatPercentageBuilder bodyFatBuilder)
         {
+            var workoutList = workouts.ToList();
             var recordMonths = records
                 .GroupBy(s => new { s.StartDate.InZone(zone).Year, s.StartDate.InZone(zone).Month })
                 .Select(g => g.Key);
 
-            var workoutMonths = workouts
+            var workoutMonths = workoutList
                 .GroupBy(s => new { s.StartDate.InZone(zone).Year, s.StartDate.InZone(zone).Month })
                 .Select(g => g.Key);
 
@@ -51,13 +46,7 @@ namespace HealthParse.Standard.Health.Sheets
                 .Concat(nutritionBuilder.BuildSummary())
                 .Concat(massBuilder.BuildSummary())
                 .Concat(distanceCyclingBuilder.BuildSummary())
-                .Concat(cyclingBuilder.BuildSummary())
-                .Concat(playBuilder.BuildSummary())
-                .Concat(ellipticalBuilder.BuildSummary())
-                .Concat(walkingBuilder.BuildSummary())
-                .Concat(runningBuilder.BuildSummary())
-                .Concat(strengthBuilder.BuildSummary())
-                .Concat(hiitBuilder.BuildSummary())
+                .Concat(workoutBuilderFactory.GetWorkoutBuilders().SelectMany(b => b.BuildSummary()))
                 ;
         }
 

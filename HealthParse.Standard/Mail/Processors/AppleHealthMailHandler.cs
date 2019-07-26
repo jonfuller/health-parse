@@ -6,22 +6,22 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Mail.Processors
 {
-    public abstract class AppleHealthMailProcessor : IMailProcessor
+    public abstract class AppleHealthMailHandler : IMailHandler
     {
         private readonly string _from;
         private readonly Settings.Settings _settings;
         private readonly IEnumerable<ExcelWorksheet> _customSheets;
 
-        protected AppleHealthMailProcessor(string from, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
+        protected AppleHealthMailHandler(string from, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets)
         {
             _from = @from;
             _settings = settings;
             _customSheets = customSheets;
         }
 
-        public abstract bool CanHandle(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments);
+        public abstract bool CanHandle(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments);
 
-        public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<Tuple<string, byte[]>> attachments)
+        public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<(string name, byte[] data)> attachments)
         {
             var theExportZip = GetExportZip(originalEmail, attachments);
             var attachment = ExcelReport.CreateReport(theExportZip, _settings, _customSheets);
@@ -36,6 +36,6 @@ namespace HealthParse.Standard.Mail.Processors
             return Result.Success(reply);
         }
 
-        protected abstract byte[] GetExportZip(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments);
+        protected abstract byte[] GetExportZip(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments);
     }
 }

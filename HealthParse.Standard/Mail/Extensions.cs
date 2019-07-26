@@ -15,12 +15,12 @@ namespace HealthParse.Standard.Mail
             return Convert.ToBase64String(SHA1.Create().ComputeHash(Encoding.Default.GetBytes(address.Address)));
         }
 
-        public static IEnumerable<Tuple<string, byte[]>> LoadAttachments(this MimeMessage message)
+        public static IEnumerable<(string name, byte[] data)> LoadAttachments(this MimeMessage message)
         {
             return message.Attachments
                 .Select(attachment => new { attachment, filename = attachment.ContentDisposition?.FileName ?? attachment.ContentType.Name })
                 .Select(x => new { x.attachment, x.filename, data = LoadAttachment(x.attachment) })
-                .Select(x => Tuple.Create(x.filename, x.data));
+                .Select(x => (name: x.filename, x.data));
         }
         private static byte[] LoadAttachment(MimeEntity attachment)
         {

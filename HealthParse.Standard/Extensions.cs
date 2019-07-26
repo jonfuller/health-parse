@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HealthParse.Standard.Health.Sheets;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -11,6 +12,11 @@ namespace HealthParse.Standard
 {
     public static class Extensions
     {
+        public static string SplitCamelCase(this string input)
+        {
+            return Regex.Replace(input, "(?<=[a-z])([A-Z])", " $1", RegexOptions.Compiled);
+        }
+
         public static Column<TKey> MakeColumn<TKey, TVal>(this IEnumerable<Tuple<TKey, TVal>> data, string header = null, string range = null)
         {
             return data.Aggregate(

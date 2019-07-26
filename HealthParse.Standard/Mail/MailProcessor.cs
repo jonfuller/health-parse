@@ -16,23 +16,19 @@ namespace HealthParse.Standard.Mail
             var customSheets = settingsStore.GetCustomSheets(userId).ToList();
 
             var attachments = originalEmail.LoadAttachments().ToList();
-            var handlers = new IMailProcessor[]
+            var handlers = new IMailHandler[]
             {
-                new AppleHealthAttachmentMailProcessor(from, settings, customSheets),
-                new AppleHealthGoogleDriveMailProcessor(from, settings, customSheets),
-                new SettingsUpdateMailProcessor(from, settingsStore),
-                new HelpMailProcessor(from), // <-- catch all
+                new AppleHealthAttachmentMailHandler(from, settings, customSheets),
+                new AppleHealthGoogleDriveMailHandler(from, settings, customSheets),
+                new SettingsUpdateMailHandler(from, settingsStore),
+                new HelpMailHandler(from), // <-- catch all
             };
 
             try
             {
-                var processor = handlers.First(h => h.CanHandle(originalEmail, attachments));
-                var result = Benchmark.Benchmark.Time(() => processor.Process(originalEmail, attachments));
-                telemetry.TrackEvent(
-                    processor.GetType().Name,
-                    metrics: Events.Metrics.Init()
-                        .Then(Events.Metrics.Duration, result.Elapsed.TotalMinutes));
-                return result.Value;
+                return handlers
+                    .First(h => h.CanHandle(originalEmail, attachments))
+                    .Process(originalEmail, attachments);
             }
             catch (Exception e)
             {

@@ -9,20 +9,20 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Mail.Processors
 {
-    public class SettingsUpdateMailProcessor : IMailProcessor
+    public class SettingsUpdateMailHandler : IMailHandler
     {
         private readonly string _from;
         private readonly ISettingsStore _settingsStore;
 
-        public SettingsUpdateMailProcessor(string from, ISettingsStore settingsStore)
+        public SettingsUpdateMailHandler(string from, ISettingsStore settingsStore)
         {
             _from = @from;
             _settingsStore = settingsStore;
         }
 
-        public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<Tuple<string, byte[]>> attachments)
+        public Result<MimeMessage> Process(MimeMessage originalEmail, IEnumerable<(string name, byte[] data)> attachments)
         {
-            var excelAttachment = attachments.First(a => a.Item1.Contains("xlsx")).Item2;
+            var excelAttachment = attachments.First(a => a.name.Contains("xlsx")).data;
 
             using (var stream = new MemoryStream(excelAttachment))
             using (var excelDoc = new ExcelPackage(stream))
@@ -54,10 +54,10 @@ See you next time!";
             }
         }
 
-        public bool CanHandle(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments)
+        public bool CanHandle(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments)
         {
             return message.Subject.ToLower(CultureInfo.CurrentCulture).Contains("settings")
-                && attachments.Any(a => a.Item1.ToLower(CultureInfo.CurrentCulture).Contains("xlsx"));
+                && attachments.Any(a => a.name.ToLower(CultureInfo.CurrentCulture).Contains("xlsx"));
         }
 
         private MimeMessage ConstructSettingsUpdateErrorMessage(MimeMessage original)

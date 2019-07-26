@@ -1,23 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using MimeKit;
 
 namespace HealthParse.Standard.Mail.Processors
 {
-    public class HelpMailProcessor : IMailProcessor
+    public class HelpMailHandler : IMailHandler
     {
         private readonly string _from;
 
-        public HelpMailProcessor(string from)
+        public HelpMailHandler(string from)
         {
             _from = @from;
         }
-        public bool CanHandle(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments)
+        public bool CanHandle(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments)
         {
             return true;
         }
 
-        public Result<MimeMessage> Process(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments)
+        public Result<MimeMessage> Process(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments)
         {
             return Result.Success(MailUtility.ConstructReply(message, new MailboxAddress(_from), builder =>
             {

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using HealthParse.Standard.Health.Sheets.Records;
+﻿using HealthParse.Standard.Health.Sheets.Records;
 using HealthParse.Standard.Health.Sheets.Workouts;
 using NodaTime;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HealthParse.Standard.Health.Sheets
@@ -12,13 +12,6 @@ namespace HealthParse.Standard.Health.Sheets
         public static IEnumerable<(object builder, string sheetName, bool omitEmptyColumns)> GetBuilders(Settings.Settings settings, DateTimeZone zone, IList<Record> records, IList<Workout> workouts)
         {
             var stepBuilder = new StepBuilder(records, zone);
-            var cyclingWorkoutBuilder = new CyclingWorkoutBuilder(workouts, zone, settings);
-            var playWorkoutBuilder = new PlayWorkoutBuilder(workouts, zone, settings);
-            var ellipticalWorkoutBuilder = new EllipticalWorkoutBuilder(workouts, zone, settings);
-            var runningWorkoutBuilder = new RunningWorkoutBuilder(workouts, zone, settings);
-            var walkingWorkoutBuilder = new WalkingWorkoutBuilder(workouts, zone, settings);
-            var strengthTrainingBuilder = new StrengthTrainingBuilder(workouts, zone, settings);
-            var hiitBuilder = new HiitBuilder(workouts, zone, settings);
             var distanceCyclingBuilder = new DistanceCyclingBuilder(records, zone, settings);
             var massBuilder = new MassBuilder(records, zone, settings);
             var bodyFatBuilder = new BodyFatPercentageBuilder(records, zone);
@@ -27,18 +20,13 @@ namespace HealthParse.Standard.Health.Sheets
             var nutritionBuilder = new NutritionBuilder(records, zone, settings);
             var settingsBuilder = new SettingsSheetBuilder(settings);
 
-            var summaryBuilder = new SummaryBuilder(records, workouts, zone,
+            var workoutBuilderFactory = new WorkoutBuilderFactory(workouts, zone, settings);
+
+            var summaryBuilder = new SummaryBuilder(records, workouts, workoutBuilderFactory, zone,
                 stepBuilder,
                 generalRecordsBuilder,
                 healthMarkersBuilder,
                 nutritionBuilder,
-                cyclingWorkoutBuilder,
-                playWorkoutBuilder,
-                ellipticalWorkoutBuilder,
-                runningWorkoutBuilder,
-                walkingWorkoutBuilder,
-                strengthTrainingBuilder,
-                hiitBuilder,
                 distanceCyclingBuilder,
                 massBuilder,
                 bodyFatBuilder);
@@ -65,13 +53,7 @@ namespace HealthParse.Standard.Health.Sheets
                         generalRecordsBuilder,
                         healthMarkersBuilder,
                         nutritionBuilder,
-                        cyclingWorkoutBuilder,
-                        playWorkoutBuilder,
-                        ellipticalWorkoutBuilder,
-                        runningWorkoutBuilder,
-                        walkingWorkoutBuilder,
-                        strengthTrainingBuilder,
-                        hiitBuilder,
+                        workoutBuilderFactory,
                         distanceCyclingBuilder,
                         massBuilder,
                         bodyFatBuilder);
@@ -93,13 +75,8 @@ namespace HealthParse.Standard.Health.Sheets
                 .Concat(new { builder = (object)healthMarkersBuilder, sheetName = SheetNames.HealthMarkers, omitEmptyColumns = true })
                 .Concat(new { builder = (object)nutritionBuilder, sheetName = SheetNames.Nutrition, omitEmptyColumns = true })
                 .Concat(new { builder = (object)distanceCyclingBuilder, sheetName = SheetNames.CyclingDistance, omitEmptyColumns = true })
-                .Concat(new { builder = (object)cyclingWorkoutBuilder, sheetName = SheetNames.CyclingWorkouts, omitEmptyColumns = true })
-                .Concat(new { builder = (object)strengthTrainingBuilder, sheetName = SheetNames.StrengthTraining, omitEmptyColumns = true })
-                .Concat(new { builder = (object)hiitBuilder, sheetName = SheetNames.Hiit, omitEmptyColumns = true })
-                .Concat(new { builder = (object)runningWorkoutBuilder, sheetName = SheetNames.Running, omitEmptyColumns = true })
-                .Concat(new { builder = (object)walkingWorkoutBuilder, sheetName = SheetNames.Walking, omitEmptyColumns = true })
-                .Concat(new { builder = (object)ellipticalWorkoutBuilder, sheetName = SheetNames.Elliptical, omitEmptyColumns = true })
-                .Concat(new { builder = (object)playWorkoutBuilder, sheetName = SheetNames.Play, omitEmptyColumns = true })
+                .Concat(workoutBuilderFactory.GetWorkoutBuilders().Select(builder =>
+                    new{builder = (object)builder, sheetName = SheetNames.For(builder.WorkoutKey), omitEmptyColumns = true}))
                 .Concat(new { builder = (object)settingsBuilder, sheetName = SheetNames.Settings, omitEmptyColumns = true })
                 .ToList();
 

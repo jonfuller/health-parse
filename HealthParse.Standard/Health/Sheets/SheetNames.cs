@@ -10,14 +10,22 @@
         public const string HealthMarkers = "Health Markers";
         public const string Nutrition = "Nutrition";
         public const string CyclingDistance = "Cycling (Distance)";
-        public const string CyclingWorkouts = "Cycling (Workouts)";
-        public const string StrengthTraining = "Strength Training";
-        public const string Hiit = "HIIT";
-        public const string Running = "Running";
-        public const string Walking = "Walking";
-        public const string Elliptical = "Elliptical";
-        public const string Play = "Play";
         public const string Settings = "Settings";
+
+        public static string For(string hkWorkout)
+        {
+            var shortName = hkWorkout.Replace("HKWorkoutActivityType", string.Empty);
+
+            switch (shortName)
+            {
+                case "TraditionalStrengthTraining":
+                    return "Strength Training";
+                case "HighIntensityIntervalTraining":
+                    return "HIIT";
+                default:
+                    return shortName.SplitCamelCase();
+            }
+        }
 
         public static class MonthSummary
         {

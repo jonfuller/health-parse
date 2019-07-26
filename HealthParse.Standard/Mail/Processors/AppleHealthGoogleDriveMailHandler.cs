@@ -7,18 +7,18 @@ using OfficeOpenXml;
 
 namespace HealthParse.Standard.Mail.Processors
 {
-    public class AppleHealthGoogleDriveMailProcessor : AppleHealthMailProcessor
+    public class AppleHealthGoogleDriveMailHandler : AppleHealthMailHandler
     {
-        public AppleHealthGoogleDriveMailProcessor(string from, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets) : base(@from, settings, customSheets)
+        public AppleHealthGoogleDriveMailHandler(string from, Settings.Settings settings, IEnumerable<ExcelWorksheet> customSheets) : base(@from, settings, customSheets)
         {
         }
 
-        public override bool CanHandle(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments)
+        public override bool CanHandle(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments)
         {
             return GetGoogleDriveLinkInEmail(message) != null;
         }
 
-        protected override byte[] GetExportZip(MimeMessage message, IEnumerable<Tuple<string, byte[]>> attachments)
+        protected override byte[] GetExportZip(MimeMessage message, IEnumerable<(string name, byte[] data)> attachments)
         {
             var link = GetGoogleDriveLinkInEmail(message);
             var fileId = new Uri(link).Segments.OrderByDescending(s => s.Length).First().Replace("/", "");

@@ -59,13 +59,20 @@ namespace HealthParse.Standard.Health.Sheets
 
         public static class Workout
         {
-            public static string Cycling() => "Cycling";
-            public static string Running() => "Running";
-            public static string Walking() => "Walking";
-            public static string HIIT() => "HIIT";
-            public static string Play() => "Play";
-            public static string Elliptical() => "Elliptical";
-            public static string StrengthTraining() => "Strength";
+            public static string For(string hkWorkout)
+            {
+                var shortName = hkWorkout.Replace("HKWorkoutActivityType", string.Empty);
+
+                switch (shortName)
+                {
+                    case "TraditionalStrengthTraining":
+                        return "Strength";
+                    case "HighIntensityIntervalTraining":
+                        return "HIIT";
+                    default:
+                        return shortName.SplitCamelCase();
+                }
+            }
         }
     }
 }
