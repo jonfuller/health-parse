@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using HealthParse.Standard.Health.Export;
 using HealthParse.Standard.Health.Sheets;
-using HealthParse.Standard.Health.Sheets.Records;
-using HealthParse.Standard.Health.Sheets.Workouts;
 using NodaTime;
 using OfficeOpenXml;
 

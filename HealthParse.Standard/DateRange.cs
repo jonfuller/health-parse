@@ -4,8 +4,8 @@ namespace HealthParse.Standard
 {
     public class DateRange : InstantRange, IRange<ZonedDateTime>
     {
-        public ZonedDateTime Start { get; }
-        public ZonedDateTime End { get; }
+        public new ZonedDateTime Start { get; }
+        public new ZonedDateTime End { get; }
 
         public DateRange(ZonedDateTime start, ZonedDateTime end) : base(start.ToInstant(), end.ToInstant())
         {

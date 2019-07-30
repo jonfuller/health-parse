@@ -5,10 +5,8 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 
 namespace HealthParse
@@ -19,7 +17,7 @@ namespace HealthParse
         public static void Run(
             [TimerTrigger("0 */1 * * * *")]TimerInfo timer,
             [Queue(queueName: Fn.Qs.IncomingMail, Connection = Fn.ConnectionKeyName)]ICollector<string> outputQueue,
-            TraceWriter log)
+            ILogger log)
         {
             using (var client = new ImapClient())
             {
@@ -47,7 +45,7 @@ namespace HealthParse
                         outputQueue.Add(filename);
                         inbox.AddFlags(x.uid, MessageFlags.Seen, false);
 
-                        log.Info($"Queued email - {x.message.From.ToString()} - {x.message.Subject} - {filename}");
+                        log.LogInformation($"Queued email - {x.message.From.ToString()} - {x.message.Subject} - {filename}");
                         //telemetry.TrackEvent(Events.ReceivedMail);
                     });
 

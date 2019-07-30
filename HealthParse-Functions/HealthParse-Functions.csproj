@@ -1,12 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="2.0.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.4.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />
+    <PackageReference Include="MailKit" Version="2.2.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.10.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.6" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HealthParse.Standard\HealthParse.Standard.csproj" />

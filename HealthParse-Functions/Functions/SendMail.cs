@@ -6,7 +6,7 @@ using MailKit.Net.Smtp;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 
@@ -17,7 +17,7 @@ namespace HealthParse
         [FunctionName("SendMail")]
         public static void Run(
             [QueueTrigger(queueName: Fn.Qs.OutgoingMail, Connection = Fn.ConnectionKeyName)]CloudQueueMessage message,
-            TraceWriter log)
+            ILogger log)
         {
             using (var client = new SmtpClient())
             {
@@ -40,7 +40,7 @@ namespace HealthParse
 
                 EmailStorage.DeleteEmailFromStorage(message.AsString, outgoingContainer);
 
-                log.Info($"sent mail to {email.To} - {email.Subject}");
+                log.LogInformation($"sent mail to {email.To} - {email.Subject}");
             }
         }
     }
