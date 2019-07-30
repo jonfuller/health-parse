@@ -70,7 +70,7 @@ namespace HealthParse.Standard.Health.Sheets
                     case "HighIntensityIntervalTraining":
                         return "HIIT";
                     default:
-                        return shortName.SplitCamelCase();
+                        return shortName.SplitCamelCase().Rangify();
                 }
             }
         }

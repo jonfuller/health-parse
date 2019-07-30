@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NodaTime;
 using UnitsNet;
+using UnitsNet.Units;
 
 namespace HealthParse.Standard.Health.Sheets.Records
 {
@@ -52,7 +53,7 @@ namespace HealthParse.Standard.Health.Sheets.Records
 
             _exerciseTime = categorized.exercise
                 .GroupBy(r => r.StartDate.InZone(_zone).Date)
-                .Select(r => Tuple.Create(r.Key, new UnitsNet.Duration(r.Sum(c => (c.EndDate - c.StartDate).TotalSeconds)).As(settings.DurationUnit)))
+                .Select(r => Tuple.Create(r.Key, new UnitsNet.Duration(r.Sum(c => (c.EndDate - c.StartDate).TotalSeconds), DurationUnit.Second).As(settings.DurationUnit)))
                 .ToList();
 
             _flightsClimbed = categorized.flights

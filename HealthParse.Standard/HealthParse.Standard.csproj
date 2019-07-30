@@ -8,19 +8,9 @@
     <PackageReference Include="EPPlus" Version="4.5.3.2" />
     <PackageReference Include="MailKit" Version="2.2.0" />
     <PackageReference Include="NodaTime" Version="2.4.6" />
-    <PackageReference Include="UnitsNet" Version="3.89.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.ApplicationInsights">
-      <HintPath>..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.applicationinsights\2.4.0\lib\netstandard1.3\Microsoft.ApplicationInsights.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage">
-      <HintPath>..\..\..\.nuget\packages\windowsazure.storage\8.3.0\lib\netstandard1.3\Microsoft.WindowsAzure.Storage.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\.nuget\packages\newtonsoft.json\10.0.3\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
-    </Reference>
+    <PackageReference Include="UnitsNet" Version="4.32.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.10.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
 
 </Project>
