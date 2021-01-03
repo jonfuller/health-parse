@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using HealthParse.Standard.Health;
 using HealthParse.Standard.Settings;
@@ -12,30 +13,22 @@ namespace HealthParse
 {
     class Program
     {
-        static void Main(string[] args)
+        private const string fileLocation = @"REPLACE_THIS_WITH_YOUR_IMPORT_ZIP";// e.g. @"c:\users\jcfuller\Downloads\export.zip";
+        private const string outputLocation = @"REPLACE_THIS_WITH_YOUR_EXPORT_LOCATION";// e.g. @"c:\users\jcfuller\Desktop\";
+
+        static async Task Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var fileLocation = @"c:\users\jcfuller\Downloads\export.zip";
-            XDocument export = null;
-            using (var reader = new StreamReader(fileLocation))
-            {
-                export = ZipUtilities.ReadArchive(
-                    reader.BaseStream,
-                    entry => entry.FullName == "apple_health_export/export.xml",
-                    entry => XDocument.Load(entry.Open()))
-                .FirstOrDefault();
-            }
 
             var settings = Settings.Default;
             settings.UseConstantNameForMostRecentMonthlySummarySheet = true;
             settings.UseConstantNameForPreviousMonthlySummarySheet = true;
 
-            using (var excelFile = new ExcelPackage())
-            {
-                ExcelReport.BuildReport(export, excelFile.Workbook, settings, Enumerable.Empty<ExcelWorksheet>());
+            var fileData = await File.ReadAllBytesAsync(fileLocation);
 
-                excelFile.SaveAs(new FileInfo(@"c:\users\jcfuller\Desktop\test-edt.xlsx"));
-            }
+            var attachment = ExcelReport.CreateReport(fileData, settings, Enumerable.Empty<ExcelWorksheet>());
+
+            await File.WriteAllBytesAsync(outputLocation + "test-edt.xlsx", attachment);
 
             Console.WriteLine("done, press a key");
             Console.ReadKey();
