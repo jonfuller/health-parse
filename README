@@ -8,9 +8,9 @@ You can test the project locally using the HealthParse project.
 
 To load the data open program.cs and replace the string "REPLACE_THIS_WITH_YOUR_IMPORT_ZIP" with the location of your exported Apple Health zip file.
 
-
+To export the data to the correct location replace "REPLACE_THIS_WITH_YOUR_EXPORT_LOCATION" with the export location you'd like the file saved to.
 
 
 ## Rights
 
-Apple and iPhone are trademarks of Apple Inc., registered in the U.S. and other countries.
+Apple and Apple Health are trademarks of Apple Inc., registered in the U.S. and other countries.
