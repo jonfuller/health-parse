@@ -1,0 +1,16 @@
+# Apple Health Parse
+
+This project parses Apple Health Data and outputs it in Excel format for analysis.
+
+## Local Tests
+
+You can test the project locally using the HealthParse project.
+
+To load the data open program.cs and replace the string "REPLACE_THIS_WITH_YOUR_IMPORT_ZIP" with the location of your exported Apple Health zip file.
+
+
+
+
+## Rights
+
+Apple and iPhone are trademarks of Apple Inc., registered in the U.S. and other countries.
